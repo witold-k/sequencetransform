@@ -30,6 +30,16 @@ The result is a toolbox for constructing experimental signal-processing pipeline
 
 ## Status
 
-The original stock-analysis experiment was not successful and the project is currently stalled. The library is kept because some of the sequence-processing ideas may become useful again, possibly in combination with later AI experiments.
+The original stock-analysis experiment was not successful and active development of this library has stopped.
+
+Today, this repository is mainly kept as an **archive of ideas and experiments around sequence processing** rather than as a finished or maintained library. Some of its concepts may still be useful for future projects.
+
+In particular, a few ideas remain interesting:
+
+- composing sequence analysis from small transforms, accumulators and selectors instead of implementing monolithic indicators;
+- combining a data sequence with a second trigger sequence through `ZipSequenceTransform`;
+- converting sliding windows into scale-independent ordinal patterns and compact integer tokens with `SortedToUInt`.
+
+The last idea in particular may be worth revisiting for pattern recognition, token-based representations or future AI experiments.
 
 Apache-2.0
