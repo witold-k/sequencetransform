@@ -44,9 +44,10 @@ where
                     };
                     cobj2 = (self.select)(obj2);
                 }
-                else {
-                    // they are equal by value, not by reference: just return
+                else if *cobj1 == *cobj2 {
                     return (Some(obj1), Some(obj2));
+                } else {
+                    return (None, None);
                 }
             }
         }
@@ -78,9 +79,10 @@ where
                 };
                 cobj2 = (self.select)(obj2);
             }
-            else {
-                // they are equal by value, not by reference: just return
+            else if *cobj1 == *cobj2 {
                 return (Some(obj1), Some(obj2));
+            } else {
+                return (None, None);
             }
         }
     }

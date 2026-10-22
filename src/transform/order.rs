@@ -23,12 +23,13 @@ where
         ITEMIN: 'a + Number<ITEMIN>,
     {
         let len = ri.len();
-        if len != out.len() {
+        if len != out.len() || len > u32::MAX as usize {
             return TransformResult::Error(0);
         }
         let mut temp = Vec::<OrderEntry<ITEMIN>>::with_capacity(len);
         temp.reserve(len);
         for (index, val) in ri.enumerate() {
+            if val.partial_cmp(val).is_none() { return TransformResult::Error(1); }
             temp.push(OrderEntry::<ITEMIN> { position: index as u32, value: *val });
         }
         temp.sort();

@@ -38,3 +38,28 @@ mod tests {
     }
 
 }
+
+#[cfg(test)]
+mod correctness_regressions {
+    use sequencetransform::selector::{PartlyLastN, PartlyLastN2, Selector, SelectorResult};
+
+    #[test]
+    fn selector_rejects_short_output() {
+        let sel = PartlyLastN::new(vec![1, 2, 1]);
+        let data = [1, 2, 3, 4, 5];
+        let mut out = [0];
+        assert_ne!(sel.populate(data.iter(), out.iter_mut()), SelectorResult::Ok);
+    }
+
+    #[test]
+    #[should_panic]
+    fn selector_rejects_zero_interval() {
+        PartlyLastN::new(vec![1, 0, 2]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn selector_rejects_oversized_tail() {
+        PartlyLastN2::new_taillen(vec![1, 2], 3);
+    }
+}

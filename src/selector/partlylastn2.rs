@@ -8,6 +8,8 @@ impl PartlyLastN2 {
     pub fn new_taillen(
         delta: Vec<usize>, taillen: usize
     ) -> Self {
+        assert!(taillen <= delta.len());
+        assert!(delta.iter().all(|&d| d > 0));
         let frontlen = delta.len() - taillen;
         let mut front = 1_usize;
         let mut tail  = 0_usize;

@@ -45,15 +45,16 @@ where
         let len = ri.len();
         let fac64: f64 = self.factor.as_();
         let facu       = self.factor;
-        let out_len = (fac64 * len as f64) as usize;
-        if out_len != out.len() {
+        let Some(out_len) = self.factor.checked_mul(len) else { return TransformResult::Error(0); };
+        if self.factor == 0 || out_len != out.len() {
             return TransformResult::Error(0);
         }
 
-        for re in ri {
+        for (re, chunk) in ri.zip(out.chunks_exact_mut(facu)) {
             let re_f64: f64 = re.as_();
-            let val: f64 = re_f64 * fac64;
-            Self::push_one_hot(val.round() as usize, facu, out);
+            if !re_f64.is_finite() { return TransformResult::Error(1); }
+            let val = (re_f64 * fac64).round().clamp(0.0, (facu - 1) as f64);
+            Self::push_one_hot(val as usize, facu, chunk);
         }
 
         TransformResult::Ok

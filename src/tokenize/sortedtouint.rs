@@ -2,7 +2,6 @@
 // Copyright (c) 2026 Witold Kaminski
 
 use num_traits::cast::FromPrimitive;
-use arrayvec::ArrayVec;
 
 use crate::*;
 use crate::tokenize::*;
@@ -36,9 +35,8 @@ where
         'a: 'b,
         RI: TransformReadIterator<Item = &'a ITEMIN>,
     {
-        let step = CAP - OVERLAP;
-        let last = ri.len () - CAP;
-        last / step + 1
+        assert!(CAP > 0 && OVERLAP < CAP);
+        ri.len().checked_sub(CAP).map_or(0, |last| last / (CAP - OVERLAP) + 1)
     }
 
     /**
@@ -57,8 +55,9 @@ where
         'a: 'b,
         RI: TransformReadIterator<Item = &'a ITEMIN>,
     {
-        let step = CAP - OVERLAP;
-        ri.len() - (calc_len * step - CAP)
+        assert!(CAP > 0 && OVERLAP < CAP);
+        assert_eq!(calc_len, self.len(ri));
+        if calc_len == 0 { 0 } else { (calc_len - 1) * (CAP - OVERLAP) }
     }
 
     #[inline(always)]
@@ -73,31 +72,30 @@ where
         RI:     TransformReadIterator<Item = &'a ITEMIN>,
         ITEMIN: 'a + Number<ITEMIN>,
     {
-        const { assert!(CAP <= 1 << CAP_LN2) }
+        const {
+            assert!(CAP > 0 && OVERLAP < CAP);
+            assert!(CAP_LN2 > 0 && CAP_LN2 <= 64);
+            assert!(CAP <= 128);
+            assert!((CAP as u128) <= (1u128 << CAP_LN2));
+            assert!(CAP_LN2 * CAP <= 64);
+        }
 
         if self.len(&ri) != out.len() {
             return TransformResult::Error(0);
         }
 
-        let init_i = out.iter_mut().take(CAP);
-        for val in init_i {
-            *val = default_out;
-        }
-
-        let mut temp_in    = ArrayVec::<ITEMIN,  CAP>::new();
-        let mut temp_order = ArrayVec::<i8,      CAP>::new();
-        unsafe {
-            temp_in.set_len(CAP);
-            temp_order.set_len(CAP);
-        }
+        out.fill(default_out);
+        if out.is_empty() { return TransformResult::Ok; }
+        let mut temp_in = Vec::<ITEMIN>::with_capacity(CAP);
+        let mut temp_order = vec![0i8; CAP];
 
         let order = Order::<i8> { factor: 1 };
         let mut wi = out.iter_mut();
 
         // prime first window
-        for i in 0..CAP {
+        for _ in 0..CAP {
             if let Some(x) = ri.next() {
-                temp_in[i] = *x;
+                temp_in.push(*x);
             } else {
                 return TransformResult::Error(0);
             }

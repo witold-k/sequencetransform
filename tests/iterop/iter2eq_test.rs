@@ -45,3 +45,16 @@ mod tests {
         };
     }
 }
+
+#[cfg(test)]
+mod correctness_regressions {
+    use sequencetransform::iterop::Iter2Eq;
+
+    #[test]
+    fn unordered_values_do_not_match() {
+        let a = [f32::NAN];
+        let b = [f32::NAN];
+        let mut eq = Iter2Eq::new(a.iter(), b.iter(), |v: &f32| v);
+        assert!(eq.next2().0.is_none());
+    }
+}

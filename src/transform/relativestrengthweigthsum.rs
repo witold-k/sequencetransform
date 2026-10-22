@@ -33,7 +33,7 @@ where
         let len = ri.len();
         let count = self.count;
 
-        if len != out.len() || len < count {
+        if count == 0 || len != out.len() || len < count {
             return TransformResult::Error(0);
         }
         let pa = AddRaiseWeigth::<ITEMOUT>::default();

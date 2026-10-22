@@ -23,6 +23,7 @@ where
         U: 'a,
         J: Iterator<Item = &'a T> + Clone
     {
+        if data.is_empty() || iter2.clone().next().is_none() { return 0; }
         let init_len = data.len();
 
         let mut dataptr = data.as_mut_ptr();

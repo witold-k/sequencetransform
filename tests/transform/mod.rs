@@ -6,3 +6,6 @@ mod movingaverage_test;
 mod movingmedian_test;
 mod order_test;
 mod relativestrength_test;
+
+mod movingpitch_test;
+mod onehotquantization_test;

@@ -63,7 +63,7 @@ where
         CTO:    ConvertTo<ITEMIN, ITEMOUT>,
     {
         let len = ri.len();
-        if len != out.len() {
+        if len != out.len() || self.count < 2 || self.count > len {
             return TransformResult::Error(0);
         }
 
@@ -85,7 +85,8 @@ where
                 let f2: ITEMOUT = i2 / FromPrimitive::from_usize(i - 1).unwrap();
                 let fi  = ri.clone().take(i);
                 // ## FIXME OPTIMIZEME sum, sumi: do not calc each time all
-                *we = f1 * (f2 * aai.accumulate(fi.clone(), conv.clone()).unwrap()
+                *we = f1 * (f2 * (aai.accumulate(fi.clone(), conv.clone()).unwrap()
+                    - aa.accumulate(fi.clone(), conv.clone()).unwrap())
                     - aa.accumulate(fi, conv.clone()).unwrap());
             }
         }
@@ -96,12 +97,13 @@ where
             // because of possible nummeric instabilities
             // maybe sum, sumi needs to be calculated fully
             let fi  = ri.clone().skip(i).take(n);
-            *we = f1 * (f2 * aai.accumulate(fi.clone(), conv.clone()).unwrap()
+            *we = f1 * (f2 * (aai.accumulate(fi.clone(), conv.clone()).unwrap()
+                - aa.accumulate(fi.clone(), conv.clone()).unwrap())
                 - aa.accumulate(fi, conv.clone()).unwrap());
         }
 
         if self.skip_first {
-            let valid = out[n];
+            let valid = out[m];
             let wi = out.iter_mut().take(m);
             for we in wi {
                 *we = valid;

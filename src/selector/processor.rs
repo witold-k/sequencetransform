@@ -30,10 +30,8 @@ where
             SelectorResult::Ok       => true,
             SelectorResult::Error(_) => false
         };
-        match self.read_iterator.next() {
-            Some(_) => has_more,
-            None    => false
-        }
+        if !has_more { return false; }
+        self.read_iterator.next().is_some()
     }
 
     fn process_len(&self) -> usize {
@@ -66,10 +64,8 @@ where
             SelectorResult::Ok       => true,
             SelectorResult::Error(_) => false
         };
-        match self.read_iterator.next() {
-            Some(_) => has_more,
-            None    => false
-        }
+        if !has_more { return false; }
+        self.read_iterator.next().is_some()
     }
 
     fn process_len(&self) -> usize {

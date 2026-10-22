@@ -34,7 +34,7 @@ where
         CTO:    ConvertTo<ITEMIN, ITEMOUT>,
     {
         let len = ri.len();
-        if len != out.len() {
+        if len != out.len() || self.count == 0 || self.count > len || self.border >= self.count {
             return TransformResult::Error(0);
         }
 

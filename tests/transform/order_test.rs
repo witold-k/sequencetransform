@@ -17,3 +17,16 @@ mod tests {
         assert_eq!(out_vec, vec!(0, 2, 1));
     }
 }
+
+#[cfg(test)]
+mod correctness_regressions {
+    use sequencetransform::TransformResult;
+    use sequencetransform::transform::{Order};
+
+    #[test]
+    fn order_rejects_nan_instead_of_panicking() {
+        let data = [1.0_f32, f32::NAN];
+        let mut out = [0i32; 2];
+        assert_ne!(Order { factor: 1i32 }.transform_self(data.iter(), &mut out), TransformResult::Ok);
+    }
+}

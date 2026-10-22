@@ -43,7 +43,7 @@ where
             ItemRefIndex::<ITEMOUT> { item: selected, index }
         }
         else {
-            ItemRefIndex::<ITEMOUT> { item: FromPrimitive::from_u32(0).unwrap(), index: count }
+            ItemRefIndex::<ITEMOUT> { item: FromPrimitive::from_u32(0).unwrap(), index: 0 }
         }
     }
 }

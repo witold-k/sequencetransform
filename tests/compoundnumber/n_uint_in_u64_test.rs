@@ -101,3 +101,19 @@ mod tests {
         assert_eq!(u33_3, u33_2);
     }
 }
+
+#[cfg(test)]
+mod correctness_regressions {
+    use num_traits::FromPrimitive;
+    use sequencetransform::compoundnumber::NUintInU64;
+
+    #[test]
+    fn packed_number_conversion_rejects_invalid_values() {
+        type Packed = NUintInU64<4, 8>;
+        assert!(Packed::from_i32(-1).is_none());
+        assert!(Packed::from_u128(u128::MAX).is_none());
+        assert!(Packed::from_f64(f64::NAN).is_none());
+        assert!(Packed::from_f64(f64::INFINITY).is_none());
+        assert_eq!(Packed::from_u32(42).unwrap().value, 42);
+    }
+}

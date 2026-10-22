@@ -19,3 +19,16 @@ mod tests {
         assert_eq!(out_vec, vec!(1.0, 1.5, 2.5, 3.5, 4.5));
     }
 }
+
+#[cfg(test)]
+mod invalid_window_regression {
+    use sequencetransform::{ConvertToIdentity, TransformResult};
+    use sequencetransform::transform::{MovingAverage};
+
+    #[test]
+    fn invalid_moving_window_returns_error() {
+        let data = [1.0_f32, 2.0, 3.0];
+        let mut out = [0.0_f32; 3];
+        assert_ne!(MovingAverage::<f32>::new(0).transform_self(data.iter(), &mut out, ConvertToIdentity::default()), TransformResult::Ok);
+    }
+}

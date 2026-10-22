@@ -13,6 +13,7 @@ where
     //}
 
     pub fn new_len(count: usize, border: usize, default_item: ITEMOUT) -> Self {
+        assert!(count > 0 && border < count, "invalid median window");
         let mut buffer = Vec::<OrdEntry::<ITEMOUT>>::with_capacity(count);
         let default_entry = OrdEntry::<ITEMOUT> { value: default_item };
         buffer.resize(count, default_entry);
@@ -37,9 +38,14 @@ where
         ITEMIN: 'a + Number<ITEMIN>,
         CTO:    ConvertTo<ITEMIN, ITEMOUT>,
     {
+        let mut read = 0;
         for (buf, re) in self.buffer.iter_mut().zip(ri) {
-            *buf = OrdEntry::<ITEMOUT> { value: conv.convert_ref(re) };
+            let value = conv.convert_ref(re);
+            assert!(value.partial_cmp(&value).is_some(), "unordered median value");
+            *buf = OrdEntry::<ITEMOUT> { value };
+            read += 1;
         }
+        assert_eq!(read, self.buffer.len(), "median input shorter than window");
         self.buffer.sort();
         let item: ITEMOUT = self.buffer[self.border].value;
         ItemRefIndex::<ITEMOUT> { item, index: self.border }

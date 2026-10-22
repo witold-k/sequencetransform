@@ -71,6 +71,7 @@ impl U8x4 {
 
     #[inline(always)]
     pub fn push(&mut self, val: u8) -> bool {
+        if val == Self::FREE { return false; }
         if let Some(index) = self.free_index() {
             self.index[index as usize] = val;
             true

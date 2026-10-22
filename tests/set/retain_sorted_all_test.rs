@@ -29,3 +29,41 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod correctness_regressions {
+    use sequencetransform::set::RetainSortedAll;
+
+    #[test]
+    fn empty_intersection_is_safe() {
+        let intersection = RetainSortedAll::new(|v: &mut Vec<f32>| v, |v: &f32| v);
+        let mut data: Vec<Vec<f32>> = vec![];
+        intersection.exe_vec(&mut data);
+        assert!(data.is_empty());
+    }
+
+    #[test]
+    fn normalize_skips_empty_series() {
+        let intersection = RetainSortedAll::new(|v: &mut Vec<f32>| v, |v: &f32| v);
+        let mut data = vec![vec![], vec![1.0, 2.0, 3.0], vec![2.0, 3.0]];
+        assert_eq!(intersection.normalize_exe_vec(1.0, &mut data), 2);
+        assert_eq!(data[0], vec![2.0, 3.0]);
+        assert_eq!(data[1], vec![2.0, 3.0]);
+    }
+
+    #[test]
+    fn sorted_intersection_matches_reference_for_small_inputs() {
+        let intersection = RetainSortedAll::new(|v: &mut Vec<i32>| v, |v: &i32| v);
+        for left_mask in 0u32..32 {
+            for right_mask in 0u32..32 {
+                let left: Vec<i32> = (0..5).filter(|i| (left_mask & (1 << i)) != 0).collect();
+                let right: Vec<i32> = (0..5).filter(|i| (right_mask & (1 << i)) != 0).collect();
+                let expected: Vec<i32> = left.iter().copied().filter(|x| right.contains(x)).collect();
+                let mut inputs = vec![left, right];
+                intersection.exe_vec(&mut inputs);
+                assert_eq!(inputs[0], expected, "left={left_mask}, right={right_mask}");
+                assert_eq!(inputs[1], expected, "left={left_mask}, right={right_mask}");
+            }
+        }
+    }
+}

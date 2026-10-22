@@ -43,3 +43,15 @@ In particular, a few ideas remain interesting:
 The last idea in particular may be worth revisiting for pattern recognition, token-based representations or future AI experiments.
 
 Apache-2.0
+
+## Tests
+
+Tests follow the same layout convention as [aiagents](https://github.com/witold-k/aiagents):
+
+- Keep tests under `tests/` rather than mixing them into `src/`.
+- Mirror the relative `src/` module hierarchy inside `tests/`.
+- Name each test file after the source file it exercises, with a `_test.rs` suffix (for example, `src/transform/movingpitch.rs` → `tests/transform/movingpitch_test.rs`).
+- Register new test modules in the appropriate `tests/<module>/mod.rs`; `tests/mod.rs` is the integration-test entry point.
+- Put regression tests alongside the corresponding module tests, not in a catch-all root-level regression file.
+
+Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.

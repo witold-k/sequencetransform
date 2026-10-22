@@ -40,3 +40,26 @@ mod tests {
     }
 
 }
+
+#[cfg(test)]
+mod correctness_regressions {
+    use sequencetransform::TransformResult;
+    use sequencetransform::tokenize::SortedToUInt;
+
+    #[test]
+    fn tokenization_rejects_short_windows_without_panicking() {
+        let trans = SortedToUInt::<u64, 2, 2, 4>::default();
+        let data = [1.0_f32, 2.0, 3.0];
+        assert_eq!(trans.len(&data.iter()), 0);
+        let mut out = [];
+        assert_eq!(trans.transform_self(data.iter(), &mut out, 0), TransformResult::Ok);
+    }
+
+    #[test]
+    fn tokenization_begin_read_is_last_window_start() {
+        let trans = SortedToUInt::<u64, 2, 2, 4>::default();
+        let data = [1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        assert_eq!(trans.len(&data.iter()), 3);
+        assert_eq!(trans.begin_read(&data.iter(), 3), 4);
+    }
+}

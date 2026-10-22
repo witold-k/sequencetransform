@@ -6,6 +6,7 @@ use crate::selector:: { Selector, SelectReadIterator, SelectWriteIterator, Selec
 
 impl PartlyLastN {
     pub fn new(delta: Vec<usize>) -> Self {
+        assert!(delta.iter().all(|&d| d > 0));
         let mut sum = 1_usize;
         for v in delta.iter() { sum += *v; }
 
@@ -36,6 +37,7 @@ impl Selector for PartlyLastN
         WI: SelectWriteIterator<'b, ITEM>,
         ITEM: 'a + Clone
     {
+        if write.len() != self.len() { return SelectorResult::Error(0); }
         if read.len() < self.process_size {
             return SelectorResult::Error((self.process_size - read.len()) as u32);
         }
