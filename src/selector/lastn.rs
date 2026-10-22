@@ -34,6 +34,7 @@ impl Selector for LastN
         WI: SelectWriteIterator<'b, ITEM>,
         ITEM: 'a + Clone
     {
+        if write.len() != self.count { return SelectorResult::Error(0); }
         if read.len() < self.count {
             return SelectorResult::Error((self.count - read.len()) as u32);
         }

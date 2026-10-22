@@ -1,66 +1,44 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Witold Kaminski
 
-use std::iter::Iterator;
-use crate::iterop::*;
-use crate::set::*;
+use crate::set::RetainSortedLeft;
 
 impl<'a, T: 'a, U> RetainSortedLeft<T, U>
 where
     T: Clone,
-    U: PartialOrd<U> + PartialEq<U> + Clone
+    U: PartialOrd<U> + PartialEq<U> + Clone,
 {
-
-    #[inline(always)]
-    pub fn new(
-        select: fn(&T) -> &U
-    ) -> Self {
+    pub fn new(select: fn(&T) -> &U) -> Self {
         RetainSortedLeft { select }
     }
 
+    /// Retain elements whose key occurs in the second sorted sequence.
+    /// Inputs must be sorted ascending by the selected key.
+    /// Duplicate left elements are retained when their key matches.
     pub fn exe<J>(&self, data: &'a mut [T], iter2: J) -> usize
     where
         U: 'a,
-        J: Iterator<Item = &'a T> + Clone
+        J: Iterator<Item = &'a T> + Clone,
     {
-        if data.is_empty() || iter2.clone().next().is_none() { return 0; }
-        let init_len = data.len();
-
-        let mut dataptr = data.as_mut_ptr();
-        let beginptr = dataptr;
-
-        let mut itneq = Iter2Neq::new(data.iter(), iter2.clone(), self.select);
-
-        // find first not equal, skip equal
-        if let (Some(neqobj1), Some(neqobj2)) = itneq.next2() {
-            let write_pos = init_len - itneq.iter1.len() - 1;
-            unsafe {
-                dataptr = dataptr.add(write_pos);
-            }
-            let mut iteq = Iter2Eq::new(itneq.iter1, itneq.iter2, self.select);
-            if let (Some(eqobj1), Some(_)) = iteq.step(neqobj1, neqobj2) {
-                unsafe {
-                    *dataptr = (*eqobj1).clone();
-                    dataptr = dataptr.add(1);
+        let mut right = iter2.peekable();
+        let mut retained = Vec::new();
+        for left in data.iter() {
+            let left_key = (self.select)(left);
+            while let Some(other) = right.peek() {
+                if (self.select)(other) < left_key {
+                    right.next();
+                } else {
+                    break;
                 }
             }
-            while let (Some(eqobj1), Some(_)) = iteq.next2() {
-                unsafe {
-                    *dataptr = (*eqobj1).clone();
-                    dataptr = dataptr.add(1);
+            if let Some(other) = right.peek() {
+                if (self.select)(other) == left_key {
+                    retained.push(left.clone());
                 }
             }
         }
-        else {
-            let mut iteq = Iter2Eq::new(data.iter(), iter2, self.select);
-            while let (Some(eqobj1), Some(_)) = iteq.next2() {
-                unsafe {
-                    *dataptr = (*eqobj1).clone();
-                    dataptr = dataptr.add(1);
-                }
-            }
-        }
-
-        unsafe { dataptr.offset_from(beginptr) as usize }
+        let len = retained.len();
+        data[..len].clone_from_slice(&retained);
+        len
     }
 }

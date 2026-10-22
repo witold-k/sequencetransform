@@ -15,78 +15,78 @@ impl<const COUNT: usize, const BITCOUNT: usize> FromPrimitive for NUintInU64<COU
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_isize(n: isize) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts an `i8` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_i8(n: i8) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts an `i16` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_i16(n: i16) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts an `i32` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_i32(n: i32) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts an `i64` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     fn from_i64(n: i64) -> Option<Self>  {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     #[inline]
     fn from_i128(n: i128) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts a `usize` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_usize(n: usize) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts an `u8` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_u8(n: u8) -> Option<Self> {
-        Some(Self { value: u64::from(n) })
+        Self::from_valid_u64(u64::from(n))
     }
 
     /// Converts an `u16` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_u16(n: u16) -> Option<Self> {
-        Some(Self { value: u64::from(n) })
+        Self::from_valid_u64(u64::from(n))
     }
 
     /// Converts an `u32` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     #[inline]
     fn from_u32(n: u32) -> Option<Self> {
-        Some(Self { value: u64::from(n) })
+        Self::from_valid_u64(u64::from(n))
     }
 
     /// Converts an `u64` to return an optional value of this type. If the
     /// value cannot be represented by this type, then `None` is returned.
     fn from_u64(n: u64) -> Option<Self> {
-        Some(Self { value: n })
+        Self::from_valid_u64(n)
     }
 
     #[inline]
     fn from_u128(n: u128) -> Option<Self> {
-        u64::try_from(n).ok().map(|value| Self { value })
+        u64::try_from(n).ok().and_then(Self::from_valid_u64)
     }
 
     /// Converts a `f32` to return an optional value of this type. If the
@@ -94,13 +94,13 @@ impl<const COUNT: usize, const BITCOUNT: usize> FromPrimitive for NUintInU64<COU
     #[inline]
     fn from_f32(n: f32) -> Option<Self> {
         if !n.is_finite() || n < 0.0 || (n as f64) >= 18446744073709551616.0 { return None; }
-        Some(Self { value: n as u64 })
+        Self::from_valid_u64(n as u64)
     }
 
     #[inline]
     fn from_f64(n: f64) -> Option<Self> {
         if !n.is_finite() || !(0.0..18446744073709551616.0).contains(&n) { return None; }
-        Some(Self { value: n as u64 })
+        Self::from_valid_u64(n as u64)
     }
 }
 
@@ -108,8 +108,18 @@ impl<const COUNT: usize, const BITCOUNT: usize> FromPrimitive for NUintInU64<COU
 impl<const COUNT: usize, const BITCOUNT: usize> NUintInU64<COUNT, BITCOUNT>
 {
     #[inline(always)]
+    fn valid_layout() -> bool {
+        COUNT > 0 && BITCOUNT > 0 && BITCOUNT <= 64 && COUNT <= 64 / BITCOUNT
+    }
+
+    #[inline(always)]
+    fn from_valid_u64(value: u64) -> Option<Self> {
+        Self::valid_layout().then_some(Self { value })
+    }
+
+    #[inline(always)]
     pub fn new(value: u64) -> Self {
-        assert!(COUNT > 0 && BITCOUNT > 0 && BITCOUNT <= 64 && COUNT <= 64 / BITCOUNT);
+        assert!(Self::valid_layout());
         Self { value }
     }
 

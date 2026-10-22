@@ -30,3 +30,19 @@ mod tests {
 }
 
 }
+
+#[cfg(test)]
+mod additional_regressions {
+    use sequencetransform::selector::{LastN, Selector, SelectorResult};
+
+    #[test]
+    fn output_must_have_exact_length() {
+        let select = LastN::new(3);
+        let data = [1, 2, 3, 4];
+        let mut short = [0; 1];
+        assert_ne!(select.populate(data.iter(), short.iter_mut()), SelectorResult::Ok);
+        let mut exact = [0; 3];
+        assert_eq!(select.populate(data.iter(), exact.iter_mut()), SelectorResult::Ok);
+        assert_eq!(exact, [1, 2, 3]);
+    }
+}

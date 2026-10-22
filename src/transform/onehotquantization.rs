@@ -50,6 +50,12 @@ where
             return TransformResult::Error(0);
         }
 
+        // Validate before writing; errors leave the output unchanged.
+        if ri.clone().any(|re| {
+            let value: f64 = re.as_();
+            !value.is_finite()
+        }) { return TransformResult::Error(1); }
+
         for (re, chunk) in ri.zip(out.chunks_exact_mut(facu)) {
             let re_f64: f64 = re.as_();
             if !re_f64.is_finite() { return TransformResult::Error(1); }

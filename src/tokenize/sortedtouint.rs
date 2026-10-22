@@ -109,7 +109,8 @@ where
             };
 
             // order current window
-            order.transform_self(temp_in.iter(), temp_order.as_mut_slice());
+            let result = order.transform_self(temp_in.iter(), temp_order.as_mut_slice());
+            if result != TransformResult::Ok { return result; }
 
             // build token
             let mut token: u64 = 0;
@@ -120,7 +121,10 @@ where
                 shift += CAP_LN2 as u64;
             }
 
-            *wt = FromPrimitive::from_u64(token).unwrap();
+            let Some(value) = FromPrimitive::from_u64(token) else {
+                return TransformResult::Error(2);
+            };
+            *wt = value;
 
             // slide window
             if CAP > OVERLAP {

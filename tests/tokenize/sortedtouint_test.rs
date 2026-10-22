@@ -63,3 +63,25 @@ mod correctness_regressions {
         assert_eq!(trans.begin_read(&data.iter(), 3), 4);
     }
 }
+
+#[cfg(test)]
+mod additional_regressions {
+    use sequencetransform::{TransformResult};
+    use sequencetransform::tokenize::SortedToUInt;
+
+    #[test]
+    fn rejects_nan_in_window() {
+        let tokenizer = SortedToUInt::<u64, 2, 2, 4>::default();
+        let input = [1.0_f32, f32::NAN, 3.0, 4.0];
+        let mut output = [0_u64];
+        assert_ne!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+    }
+
+    #[test]
+    fn rejects_token_that_does_not_fit_output_type() {
+        let tokenizer = SortedToUInt::<u8, 3, 2, 5>::default();
+        let input = [5.0_f32, 4.0, 3.0, 2.0, 1.0];
+        let mut output = [0_u8];
+        assert_ne!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+    }
+}

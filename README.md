@@ -55,3 +55,13 @@ Tests follow the same layout convention as [aiagents](https://github.com/witold-
 - Put regression tests alongside the corresponding module tests, not in a catch-all root-level regression file.
 
 Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
+
+## Algorithm contracts and caveats
+
+- `RetainSortedLeft` and `RetainSortedAll` require ascending sorted inputs by their selected keys. `RetainSortedLeft` preserves duplicate left elements if their key occurs on the right; this is not multiset intersection.
+- `RetainSortedAll::normalize_exe_vec` moves nonempty series to the front of the slice and returns the length of the selected prefix. Original positions are not preserved.
+- `Order` gives distinct ordinal positions to tied values. `SortedToUInt` rejects unordered values such as NaN.
+- `OneHotQuantization` rounds `value * factor` and clamps the index to `[0, factor - 1]`. Finite out-of-range values are clamped; nonfinite inputs fail without modifying the output.
+- `MovingPitch(skip_first = true)` backfills its first values using the first complete window. This noncausal behavior is intentionally unchanged pending a separate review.
+- `SelectedSyncAccumulation` and `SelectedSyncAccumulationBorder` propagate the extremum of a completed trigger segment over that segment. This is noncausal and must not be used as a point-in-time ML feature without explicit realignment.
+- `Min` and `Max` return numeric zero for empty input; callers should check emptiness first when zero is meaningful.

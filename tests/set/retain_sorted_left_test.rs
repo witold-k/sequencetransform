@@ -64,3 +64,21 @@ mod tests {
     }
 
 }
+
+#[cfg(test)]
+mod additional_regressions {
+    use sequencetransform::set::RetainSortedLeft;
+
+    #[test]
+    fn duplicates_and_empty_inputs() {
+        let retain = RetainSortedLeft::new(|x: &i32| x);
+        let mut left = [1, 2, 2, 2, 3, 4];
+        let right = [2, 4];
+        let len = retain.exe(&mut left, right.iter());
+        assert_eq!(&left[..len], &[2, 2, 2, 4]);
+        let mut empty: [i32; 0] = [];
+        assert_eq!(retain.exe(&mut empty, right.iter()), 0);
+        let mut left = [1, 2, 3];
+        assert_eq!(retain.exe(&mut left, [].iter()), 0);
+    }
+}

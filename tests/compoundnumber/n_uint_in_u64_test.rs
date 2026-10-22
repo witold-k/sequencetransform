@@ -117,3 +117,19 @@ mod correctness_regressions {
         assert_eq!(Packed::from_u32(42).unwrap().value, 42);
     }
 }
+
+#[cfg(test)]
+mod additional_regressions {
+    use num_traits::FromPrimitive;
+    use sequencetransform::compoundnumber::NUintInU64;
+
+    #[test]
+    fn invalid_layout_is_rejected_by_conversions() {
+        type Invalid = NUintInU64<2, 64>;
+        assert!(Invalid::from_u64(1).is_none());
+        assert!(Invalid::from_i32(1).is_none());
+        assert!(Invalid::from_f64(1.0).is_none());
+        type Valid = NUintInU64<1, 64>;
+        assert_eq!(Valid::from_u64(u64::MAX).unwrap().get(0), u64::MAX);
+    }
+}

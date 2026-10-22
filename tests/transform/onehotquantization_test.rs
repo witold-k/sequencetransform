@@ -16,3 +16,18 @@ mod correctness_regressions {
         assert_eq!(out, [1.,0.,0.,0., 0.,0.,1.,0., 0.,0.,0.,1.]);
     }
 }
+
+#[cfg(test)]
+mod additional_regressions {
+    use sequencetransform::TransformResult;
+    use sequencetransform::transform::OneHotQuantization;
+
+    #[test]
+    fn nonfinite_input_does_not_partially_write_output() {
+        let input = [0.25_f32, f32::NAN];
+        let mut output = [7.0_f32; 8];
+        let trans = OneHotQuantization::<f32>::new(4);
+        assert_ne!(trans.transform_self(input.iter(), &mut output), TransformResult::Ok);
+        assert_eq!(output, [7.0; 8]);
+    }
+}
