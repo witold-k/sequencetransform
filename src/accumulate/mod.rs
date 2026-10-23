@@ -6,6 +6,7 @@ use crate::ConvertTo;
 use crate::Number;
 
 pub mod addall;
+pub mod rise_max8;
 pub mod addallinc;
 pub mod addfall;
 pub mod addfallweigth;

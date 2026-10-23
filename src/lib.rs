@@ -23,6 +23,7 @@ pub mod matrixtransform;
 
 pub mod convertto;
 pub mod distance;
+pub mod sort_small;
 pub mod iter;
 pub mod number;
 pub mod ordentry;

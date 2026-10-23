@@ -16,6 +16,7 @@ mod deltasignumsum_test;
 mod differentiate_test;
 mod heavyside_test;
 mod signum_test;
+mod sort_test;
 mod signumsum_test;
 
 mod minusdistance_test;

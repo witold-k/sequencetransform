@@ -22,6 +22,7 @@ pub mod relativestrength;
 pub mod relativestrengthweigth;
 pub mod relativestrengthweigthsum;
 pub mod signum;
+pub mod sort;
 pub mod signumsum;
 
 // ---------------------------------------------------------------------------
