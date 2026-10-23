@@ -10,3 +10,11 @@ mod set;
 mod tokenize;
 mod transform;
 mod ziptransform;
+
+mod convertto_test;
+mod iter_test;
+
+mod ordentry_test;
+mod orderentry_test;
+mod transformresult_test;
+mod number_test;

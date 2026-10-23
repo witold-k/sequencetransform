@@ -4,3 +4,5 @@
 mod n_uint_in_u64_test;
 
 mod u8x4_test;
+
+mod u8x8_test;

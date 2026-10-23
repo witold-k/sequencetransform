@@ -133,3 +133,45 @@ mod additional_regressions {
         assert_eq!(Valid::from_u64(u64::MAX).unwrap().get(0), u64::MAX);
     }
 }
+
+#[cfg(test)]
+mod mathematical_invariants {
+    use sequencetransform::compoundnumber::NUintInU64;
+    use sequencetransform::distance::{Delta, Distance};
+
+    #[test]
+    fn hamming_distance_is_symmetric_and_zero_for_equal_values() {
+        type Packed = NUintInU64<4, 8>;
+        let a = Packed::new(0x0102_0304);
+        let b = Packed::new(0x0102_03ff);
+        assert_eq!(a.distance(a), 0);
+        assert_eq!(a.distance(b), (a.value ^ b.value).count_ones());
+        assert_eq!(a.distance(b), b.distance(a));
+    }
+
+    #[test]
+    fn per_lane_addition_wraps_without_carrying_into_adjacent_lanes() {
+        type Packed = NUintInU64<4, 8>;
+        let a = Packed::new(0x00ff_00ff);
+        let b = Packed::new(0x0001_0001);
+        let result = a + b;
+        assert_eq!(result.value, 0);
+        for lane in 0..4 {
+            assert_eq!(result.get(lane), 0);
+        }
+    }
+
+    #[test]
+    fn delta_of_constant_sequence_is_zero() {
+        type Packed = NUintInU64<4, 8>;
+        let constant = Packed::new(0x0707_0707);
+        assert_eq!(constant.delta().value, 0);
+    }
+
+    #[test]
+    fn delta_of_ascending_sequence_is_one_after_first_lane() {
+        type Packed = NUintInU64<4, 8>;
+        let ascending = Packed::new(0x0403_0201);
+        assert_eq!(ascending.delta().value, 0x0101_0100);
+    }
+}
