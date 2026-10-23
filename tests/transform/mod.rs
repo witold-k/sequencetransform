@@ -10,3 +10,14 @@ mod relativestrength_test;
 
 mod movingpitch_test;
 mod onehotquantization_test;
+
+mod deltasignum_test;
+mod deltasignumsum_test;
+mod differentiate_test;
+mod heavyside_test;
+mod signum_test;
+mod signumsum_test;
+
+mod minusdistance_test;
+mod relativestrengthweigth_test;
+mod relativestrengthweigthsum_test;

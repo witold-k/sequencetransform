@@ -6,10 +6,15 @@ target_dir       := `cargo metadata --no-deps --format-version=1 | jq -r '.targe
 
 default: build
 
+pull:
+    git pull github --prune --rebase
+
 build:
     cargo build
     RUST_BACKTRACE=1 cargo test
     cargo clippy
+
+gbuild: pull build
 
 clean:
 	@cargo clean -p {{module_name}}

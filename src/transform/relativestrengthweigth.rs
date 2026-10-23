@@ -47,8 +47,12 @@ where
             }
         }
         else {
-            for (i, we) in (1 .. count).zip(wi.by_ref()) {
-                let j = i + 1;
+            // The first sample has no preceding change, so its strength is zero.
+            if let Some(we) = wi.next() {
+                *we = FromPrimitive::from_u32(0u32).unwrap();
+            }
+            for (i, we) in (2 .. count).zip(wi.by_ref()) {
+                let j = i;
                 let p = pa.accumulate(ri.clone().take(j), conv.clone()).unwrap();
                 let n = na.accumulate(ri.clone().take(j), conv.clone()).unwrap(); // n is negative
                 let pn = p - n;
