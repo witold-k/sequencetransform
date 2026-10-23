@@ -18,6 +18,16 @@ where
     ITEMOUT: 'static + Number<ITEMOUT>
 {
 
+    /// Reduces each completed trigger-active interval to one output value.
+    ///
+    /// Finds a rising trigger edge and the following falling edge, selects
+    /// the maximum data value in that interval, converts it to the output
+    /// type, and emits 1 when the result is >= `border`, otherwise 0.
+    /// Intervals without a subsequent falling edge are not emitted.
+    ///
+    /// Returns the number of output elements written. The output buffer
+    /// may contain more elements than the number of completed intervals.
+    /// Unequal input lengths and an empty output buffer are errors.
     #[inline(always)]
     fn transform_inline<'a, 'b, RI, ITEMIN, CTO>(
         &self,
@@ -46,6 +56,7 @@ where
         let sel = Max::<ITEMIN>::default();
 
         let mut wi = out.iter_mut();
+        // Locate the next rising trigger edge.
         let mut iup = IterSearchNextUp::<RI, ITEMIN>::new(ri_trigger.clone());
         loop {
             match iup.next() {
@@ -54,6 +65,7 @@ where
                 },
                 Some(_) => {
                     _ = ri_trigger.nth(iup.count);
+                    // Only a matching falling edge completes an interval.
                     let mut idown = IterSearchNextDown::<RI, ITEMIN>::new(iup.clone_inner());
                     match idown.next() {
                         Some (_) => {
@@ -61,6 +73,7 @@ where
                             let ri_datat = ri_data.clone();
                             _ = ri_data.nth(idown.count);
                             let ri_datat = ri_datat.take(idown.count + 1);
+                            // Select the interval maximum before converting the result.
                             let max = sel.select(ri_datat, ConvertToIdentity::<ITEMIN>::default());
                             let we = match wi.next() {
                                 Some(we) => we,

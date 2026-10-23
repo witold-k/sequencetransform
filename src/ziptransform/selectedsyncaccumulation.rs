@@ -19,14 +19,17 @@ where
     ITEMOUT: 'static + Number<ITEMOUT>
 {
 
-    /**
-     * @returns a new data stream with a sequence of
-     * max values where *ri_trigger > 0 => so
-     * max ri_data[i] where ri_trigger[i] > 0 => out[i]
-     *
-     * @ri_data: data iterator, contains arbitary comparable values
-     * @ri_trigger: trigger iterator, contains values 0 or 1
-     */
+    /// Expands completed trigger-active intervals into an output sequence.
+    ///
+    /// Finds a rising trigger edge and the following falling edge, selects
+    /// the maximum data value in that interval, and writes the converted
+    /// maximum repeatedly for the corresponding active segment. Positions
+    /// outside completed active segments are filled with zero as they are
+    /// processed. An active segment with no subsequent falling edge is
+    /// not reduced to a maximum.
+    ///
+    /// Returns the number of output elements written. The output buffer
+    /// must have at least as many elements as the input iterators.
     #[inline(always)]
     fn transform_inline<'a, 'b, RI, ITEMIN, CTO>(
         &self,
@@ -54,6 +57,7 @@ where
         let sel = Max::<ITEMIN>::default();
 
         let mut wi = out.iter_mut();
+        // Locate the next rising trigger edge.
         let mut iup = IterSearchNextUp::<RI, ITEMIN>::new(ri_trigger.clone());
         loop {
             match iup.next() {
@@ -74,13 +78,18 @@ where
                     }
 
                     ri_trigger.nth(iup.count);
+                    // Only a matching falling edge completes an interval.
                     let mut idown = IterSearchNextDown::<RI, ITEMIN>::new(iup.clone_inner());
                     match idown.next() {
                         Some (_) => {
-                            _ = ri_data.nth(iup.count);
+                            // `iup.count` already includes the leading inactive positions.
+                            // Consume only those positions: the first active value must
+                            // remain available to the interval maximum selector.
+                            _ = ri_data.nth(iup.count - 1);
                             let ri_datat = ri_data.clone();
                             _ = ri_data.nth(idown.count);
                             let ri_datat = ri_datat.take(idown.count + 1);
+                            // Select the interval maximum before converting the result.
                             let max = sel.select(ri_datat, ConvertToIdentity::<ITEMIN>::default());
                             let val_out: ITEMOUT = conv.convert(max.item);
                             idown.count += 1;
