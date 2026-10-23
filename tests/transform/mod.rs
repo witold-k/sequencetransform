@@ -3,6 +3,7 @@
 
 mod integrate_test;
 mod movingaverage_test;
+mod minusdistancesum_test;
 mod movingmedian_test;
 mod order_test;
 mod relativestrength_test;

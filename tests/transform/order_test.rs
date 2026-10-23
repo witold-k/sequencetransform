@@ -30,3 +30,33 @@ mod correctness_regressions {
         assert_ne!(Order { factor: 1i32 }.transform_self(data.iter(), &mut out), TransformResult::Ok);
     }
 }
+
+#[cfg(test)]
+mod floating_factor_regressions {
+    use sequencetransform::transform::Order;
+    use sequencetransform::TransformResult;
+
+    #[test]
+    fn zero_nan_and_infinite_factors_mean_unscaled_ranks() {
+        let input = [1.0_f32, 3.5, 2.1];
+        for factor in [0.0_f32, 1.0, f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+            let mut output = [f32::NAN; 3];
+            assert_eq!(
+                Order { factor }.transform_self(input.iter(), &mut output),
+                TransformResult::Ok
+            );
+            assert_eq!(output, [0.0, 2.0, 1.0]);
+        }
+    }
+
+    #[test]
+    fn finite_nonidentity_factor_scales_ranks() {
+        let input = [1.0_f64, 3.5, 2.1];
+        let mut output = [0.0_f64; 3];
+        assert_eq!(
+            Order { factor: 2.0_f64 }.transform_self(input.iter(), &mut output),
+            TransformResult::Ok
+        );
+        assert_eq!(output, [0.0, 4.0, 2.0]);
+    }
+}

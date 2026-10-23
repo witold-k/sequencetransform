@@ -7,6 +7,12 @@ use crate::iterop::IterSearchNextUp;
 
 // ---------------------------------------------------------------------------
 
+// Searches a trigger stream for an upward step of at least 1.
+// Intended use: 0/1 trigger sequences in SelectedAccumulation and
+// SelectedSyncAccumulation (including their Border variants).
+// This is NOT a generic detector for any positive floating-point slope.
+// `count` is the offset to the returned element from the iterator's
+// current search origin; the inner iterator advances as part of next().
 impl<ITEM, ITER> IterSearchNextUp<ITER, ITEM>
 where
     ITEM: FromPrimitive,

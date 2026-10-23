@@ -7,6 +7,12 @@ use crate::iterop::IterSearchNextDown;
 
 // ---------------------------------------------------------------------------
 
+// Searches a trigger stream for a downward step of at least 1.
+// Intended use: 0/1 trigger sequences in SelectedAccumulation and
+// SelectedSyncAccumulation (including their Border variants).
+// This is NOT a generic detector for any negative floating-point slope.
+// `count` is the offset to the returned element from the iterator's
+// current search origin; the inner iterator advances as part of next().
 impl<ITEM, ITER> IterSearchNextDown<ITER, ITEM>
 where
     ITEM: FromPrimitive,

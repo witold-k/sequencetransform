@@ -6,6 +6,14 @@ use num_traits::cast::FromPrimitive;
 use crate::*;
 use crate::transform::*;
 
+// Assigns zero-based ascending ranks at the ORIGINAL input positions.
+// Sorting equal values uses the ordering of OrderEntry; no special shared-rank
+// policy is applied to ties.
+//
+// Factor contract: 0, 1, NaN, +infinity and -infinity all mean
+// "unscaled ranks". Other finite factors multiply each rank.
+// Non-comparable input values (such as NaN) return Error(1).
+// This distinction between input NaN and factor NaN is intentional.
 impl<ITEMOUT> Order<ITEMOUT>
 where
     ITEMOUT: 'static + Number<ITEMOUT>
@@ -34,7 +42,10 @@ where
         }
         temp.sort();
         let tri = temp.iter();
-        if  self.factor != FromPrimitive::from_u32(0u32).unwrap()
+        // A non-finite factor is a request for identity scaling, NOT an error.
+        let factor_f64: f64 = self.factor.as_();
+        if factor_f64.is_finite()
+         && self.factor != FromPrimitive::from_u32(0u32).unwrap()
          && self.factor != FromPrimitive::from_u32(1u32).unwrap()
         {
             for (r, index) in tri.zip(0 .. len) {

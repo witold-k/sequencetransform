@@ -11,6 +11,11 @@ impl<ITEMOUT> Default for MinusDistance<ITEMOUT> {
     }
 }
 
+// Signed-distance counterpart of MinusDistanceSum.
+// Reads forward, writes backward, and searches beyond the immediate next
+// element for a change followed by a crossing of the current level.
+// This is not a pairwise difference or a distance between adjacent samples.
+// See MinusDistanceSum for the corresponding accumulated behavior.
 impl<ITEMOUT> MinusDistance<ITEMOUT>
 where
     ITEMOUT: 'static + Number<ITEMOUT>

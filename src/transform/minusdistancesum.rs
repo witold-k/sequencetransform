@@ -12,6 +12,21 @@ impl<ITEMOUT> Default for MinusDistanceSum<ITEMOUT> {
 }
 
 /*
+// Accumulates the signed distances computed by the look-ahead search below.
+//
+// Contract of the current implementation (see minusdistancesum_test.rs):
+// - Read the input from front to back but write results from back to front.
+// - For each input element, skip the immediate successor and search for the
+//   next different value. Then search for a value crossing the current level
+//   in the opposite direction; the remaining iterator lengths determine the
+//   signed distance added to the running sum.
+// - When fewer than two successors remain, write zero and stop. Earlier output
+//   slots are not necessarily written; initialize the output if they matter.
+// - This is NOT a conventional prefix/suffix sum of input values.
+//
+// Keep the reverse output alignment and early-stop behavior in mind before
+// changing this algorithm. Its intended mathematical interpretation beyond
+// these observable rules has not yet been independently specified.
 impl<ITEMOUT> MinusDistanceSum<ITEMOUT>
 where
     ITEMOUT: 'static + Number<ITEMOUT>
@@ -36,6 +51,8 @@ where
             return TransformResult::Error(0);
         }
 
+        // Reverse alignment is intentional: the first processed input maps
+        // to the last output slot.
         let mut wi = out.iter_mut().rev();
         let mut sum: ITEMOUT = FromPrimitive::from_u32(0u32).unwrap();
 
@@ -49,6 +66,7 @@ where
                 None     => break
             };
 
+            // The search deliberately starts after the immediate successor.
             let mut ri_count = ri.clone();
             _ = match ri_count.next() {
                 Some(curr) => curr,
