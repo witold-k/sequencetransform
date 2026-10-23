@@ -8,6 +8,7 @@ default: build
 
 pull:
     git pull github --prune --rebase
+    git branch
 
 build:
     cargo build
@@ -17,11 +18,11 @@ build:
 gbuild: pull build
 
 clean:
-	@cargo clean -p {{module_name}}
+    @cargo clean -p {{module_name}}
 
 clean-all:
-	@rm target -rf
-	@cargo clean
+    @rm target -rf
+    @cargo clean
 
 targetlist:
     rustup target list
@@ -35,11 +36,11 @@ cover-setup:
     rustup component add llvm-tools-preview
 
 cover:
-	cargo llvm-cov --all-features --workspace --html
+    cargo llvm-cov --all-features --workspace --html
 
 cover-lcov:
-	cargo llvm-cov --all-features --workspace --lcov --output-path {{target_dir}}/coverage/lcov.info
+    cargo llvm-cov --all-features --workspace --lcov --output-path {{target_dir}}/coverage/lcov.info
 
 cover-text:
-	cargo llvm-cov --all-features --workspace
+    cargo llvm-cov --all-features --workspace
 

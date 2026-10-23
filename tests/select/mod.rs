@@ -4,3 +4,4 @@
 mod max_test;
 mod min_test;
 
+mod median_test;

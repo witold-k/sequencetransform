@@ -3,3 +3,6 @@
 
 mod selectedaccumulation_test;
 
+mod atlastsignchange_test;
+mod atlastsignchangetopos_test;
+mod atlastsignchangetoneg_test;

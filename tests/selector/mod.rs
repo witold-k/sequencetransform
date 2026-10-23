@@ -4,3 +4,4 @@
 mod lastn_test;
 mod partlylastn_test;
 mod processor_test;
+mod partlylastn2_test;
