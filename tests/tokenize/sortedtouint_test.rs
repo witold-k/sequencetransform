@@ -85,3 +85,61 @@ mod additional_regressions {
         assert_ne!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
     }
 }
+
+#[cfg(test)]
+mod threshold_regressions {
+    use sequencetransform::{TransformResult};
+    use sequencetransform::tokenize::{SortedToUInt, veci8_to_u64};
+
+    #[test]
+    fn zero_threshold_preserves_original_tokens() {
+        let input = [3.0_f64, 2.96, 3.5, 3.46];
+        let mut old = [0_u64];
+        let mut new = [0_u64];
+        assert_eq!(SortedToUInt::<u64, 2, 0, 4>::default()
+            .transform_self(input.iter(), &mut old, 0), TransformResult::Ok);
+        assert_eq!(SortedToUInt::<u64, 2, 0, 4>::new(0.0)
+            .transform_self(input.iter(), &mut new, 0), TransformResult::Ok);
+        assert_eq!(old, new);
+    }
+
+    #[test]
+    fn small_decline_is_ordered_as_increase() {
+        let input = [1.0_f64, 0.96, 2.0, 1.96];
+        let mut output = [0_u64];
+        let tokenizer = SortedToUInt::<u64, 2, 0, 4>::new(0.05);
+        assert_eq!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+        assert_eq!(output[0], veci8_to_u64::<2>(vec![0, 1, 2, 3]));
+        assert_eq!(input, [1.0, 0.96, 2.0, 1.96]);
+    }
+
+    #[test]
+    fn cumulative_decline_eventually_exceeds_threshold() {
+        let input = [1.0_f64, 0.96, 0.92, 0.88];
+        let mut output = [0_u64];
+        let tokenizer = SortedToUInt::<u64, 2, 0, 4>::new(0.05);
+        assert_eq!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+        // The second decline exceeds the threshold against the adjusted predecessor;
+        // the final decline is again small enough to be suppressed.
+        assert_eq!(output[0], veci8_to_u64::<2>(vec![2, 3, 0, 1]));
+    }
+
+    #[test]
+    fn threshold_is_restarted_for_each_overlapping_window() {
+        let input = [1.0_f64, 0.96, 0.92, 0.88, 0.84, 0.80];
+        let tokenizer = SortedToUInt::<u64, 2, 2, 4>::new(0.05);
+        let mut output = [0_u64; 2];
+        assert_eq!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+        assert_eq!(output[0], output[1]);
+    }
+
+    #[test]
+    fn invalid_threshold_is_rejected() {
+        let input = [1.0_f64, 2.0, 3.0, 4.0];
+        for threshold in [-0.1, f64::NAN, f64::INFINITY] {
+            let mut output = [0_u64];
+            assert_eq!(SortedToUInt::<u64, 2, 0, 4>::new(threshold)
+                .transform_self(input.iter(), &mut output, 0), TransformResult::Error(0));
+        }
+    }
+}

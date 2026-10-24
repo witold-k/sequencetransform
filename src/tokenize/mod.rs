@@ -5,9 +5,16 @@ use std::marker::PhantomData;
 use std::vec::Vec;
 pub mod sortedtouint;
 
+/// Encode each full overlapping window as packed ascending ranks.
+///
+/// With a positive `threshold`, small consecutive declines are replaced only
+/// for ranking by the next representable value above the preceding adjusted
+/// sample. The threshold is an absolute difference in input units.
+/// A zero threshold preserves the original exact-ranking behavior.
 #[derive(Copy, Clone)]
 pub struct SortedToUInt<T, const CAP_LN2: usize, const OVERLAP: usize, const CAP: usize> {
-    marker:  PhantomData<T>
+    marker:  PhantomData<T>,
+    pub threshold: f64
 }
 
 

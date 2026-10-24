@@ -10,7 +10,8 @@ use crate::transform::*;
 impl<ITEMOUT, const CAP_LN2: usize, const OVERLAP: usize, const CAP: usize> Default for SortedToUInt<ITEMOUT, CAP_LN2, OVERLAP, CAP> {
     fn default() -> Self {
         SortedToUInt {
-            marker: Default::default()
+            marker: Default::default(),
+            threshold: 0.0
         }
     }
 }
@@ -26,6 +27,59 @@ impl<ITEMOUT, const CAP_LN2: usize, const OVERLAP: usize, const CAP: usize> Sort
 where
     ITEMOUT: 'static + Copy + FromPrimitive
 {
+    /// Construct a tokenizer with an absolute noise threshold.
+    ///
+    /// For positive thresholds, a decline within the threshold relative to
+    /// the *previous adjusted value* is replaced by its next representable
+    /// greater f64 value before ranking. Input data is never modified.
+    /// Use zero for the original exact-ranking algorithm.
+    pub fn new(threshold: f64) -> Self {
+        Self { marker: Default::default(), threshold }
+    }
+
+    // Next representable f64 strictly greater than a finite value.
+    #[inline]
+    fn next_up(value: f64) -> f64 {
+        if value == 0.0 { return f64::from_bits(1); }
+        if value >= 0.0 { f64::from_bits(value.to_bits() + 1) }
+        else { f64::from_bits(value.to_bits() - 1) }
+    }
+
+    /// Compute ranks after suppressing small consecutive declines.
+    /// The adjustment is restarted independently for every token window.
+    fn threshold_order<ITEMIN: Number<ITEMIN>>(
+        &self,
+        input: &[ITEMIN],
+        ranks: &mut [i8],
+    ) -> TransformResult {
+        let mut adjusted = Vec::<f64>::with_capacity(input.len());
+        for &sample in input {
+            let original: f64 = sample.as_();
+            if !original.is_finite() { return TransformResult::Error(1); }
+            let value = if let Some(&previous) = adjusted.last() {
+                if original < previous && previous - original <= self.threshold {
+                    Self::next_up(previous)
+                } else {
+                    original
+                }
+            } else {
+                original
+            };
+            if !value.is_finite() { return TransformResult::Error(1); }
+            adjusted.push(value);
+        }
+
+        let mut indices: Vec<usize> = (0..input.len()).collect();
+        // Stable tie-breaking by original position preserves distinct ranks.
+        indices.sort_by(|&a, &b| {
+            adjusted[a].total_cmp(&adjusted[b]).then(a.cmp(&b))
+        });
+        for (rank, index) in indices.into_iter().enumerate() {
+            ranks[index] = rank as i8;
+        }
+        TransformResult::Ok
+    }
+
     #[inline(always)]
     pub fn len<'a, 'b, RI, ITEMIN: 'a>(
         &self,
@@ -80,6 +134,9 @@ where
             assert!(CAP_LN2 * CAP <= 64);
         }
 
+        if !self.threshold.is_finite() || self.threshold < 0.0 {
+            return TransformResult::Error(0);
+        }
         if self.len(&ri) != out.len() {
             return TransformResult::Error(0);
         }
@@ -109,7 +166,11 @@ where
             };
 
             // order current window
-            let result = order.transform_self(temp_in.iter(), temp_order.as_mut_slice());
+            let result = if self.threshold == 0.0 {
+                order.transform_self(temp_in.iter(), temp_order.as_mut_slice())
+            } else {
+                self.threshold_order(&temp_in, &mut temp_order)
+            };
             if result != TransformResult::Ok { return result; }
 
             // build token
