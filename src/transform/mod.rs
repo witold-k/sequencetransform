@@ -14,7 +14,9 @@ pub mod integrate;
 pub mod minusdistance;
 pub mod minusdistancesum;
 pub mod movingaverage;
+pub mod movingaverageaverage;
 pub mod movingmedian;
+pub mod movingmedianaverage;
 pub mod movingpitch;
 pub mod onehotquantization;
 pub mod order;
@@ -52,7 +54,13 @@ pub struct MinusDistanceSum<T> { marker: PhantomData<T> }
 pub struct MovingAverage<T> { marker: PhantomData<T>, pub count: usize }
 
 #[derive(Copy, Clone)]
+pub struct MovingAverageAverage<T> { marker: PhantomData<T>, pub first_count: usize, pub second_count: usize }
+
+#[derive(Copy, Clone)]
 pub struct MovingMedian<T> { marker: PhantomData<T>, pub count: usize, pub border: usize }
+
+#[derive(Copy, Clone)]
+pub struct MovingMedianAverage<T> { marker: PhantomData<T>, pub median_count: usize, pub average_count: usize }
 
 #[derive(Copy, Clone)]
 pub struct MovingPitch<T> { marker: PhantomData<T>, pub count: usize, pub skip_first: bool }
