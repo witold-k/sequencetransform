@@ -11,7 +11,11 @@ impl<ITEMOUT> MovingMedianAverage<ITEMOUT> {
     /// Trailing moving median followed by a trailing moving average.
     /// Both stages use the available prefix for their initial windows.
     pub fn new(median_count: usize, average_count: usize) -> Self {
-        Self { marker: Default::default(), median_count, average_count }
+        Self::new_border(median_count, average_count, median_count / 2)
+    }
+
+    pub fn new_border(median_count: usize, average_count: usize, border: usize) -> Self {
+        Self { marker: Default::default(), median_count, average_count, border }
     }
 }
 
@@ -37,6 +41,7 @@ where
             || self.average_count == 0
             || self.median_count > len
             || self.average_count > len
+            || self.border >= self.median_count
         {
             return TransformResult::Error(0);
         }
@@ -47,10 +52,10 @@ where
         let mut sum: ITEMOUT = FromPrimitive::from_u32(0).unwrap();
         for (i, output) in out.iter_mut().enumerate() {
             let window_len = (i + 1).min(self.median_count);
-            let border = if window_len == self.median_count {
-                self.median_count / 2
-            } else {
+            let border = if self.border == self.median_count / 2 && window_len < self.median_count {
                 window_len / 2
+            } else {
+                self.border.min(window_len - 1)
             };
             let median = Median::<ITEMOUT>::new_len(window_len, border, default_out);
             let start = i + 1 - window_len;
