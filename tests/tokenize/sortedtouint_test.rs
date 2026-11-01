@@ -1,0 +1,145 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 Witold Kaminski
+
+use std::vec::Vec;
+use sequencetransform::*;
+use sequencetransform::tokenize::*;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_veci8_to_u64() {
+        //  2  3  1  0
+        // 10 11 01 00
+        //     B     4
+        assert_eq!(veci8_to_u64::<2>(vec!(0, 1, 3, 2)), 0xB4u64);
+    }
+
+    #[test]
+    fn test_tokentize() {
+        let s2i = SortedToUInt::<u64, 2, 2, 4>::default();
+
+        let in_vec: Vec::<f32> = vec!(1.0, 2.0, 8.0, 2.5, 3.0, 7.0, 8.0, 5.0);
+        let s2i_len = s2i.len(&in_vec.iter());
+
+        let should_vec: Vec::<u64> = vec!(
+            veci8_to_u64::<2>(vec!(0, 1, 3, 2)),
+            veci8_to_u64::<2>(vec!(3, 0, 1, 2)),
+            veci8_to_u64::<2>(vec!(0, 2, 3, 1))
+        );
+        assert_eq!(s2i_len, should_vec.len());
+
+        let mut out_vec = vec![0; s2i_len];
+        out_vec.resize(s2i_len, 0);
+
+        let res = s2i.transform_self(in_vec.iter(), out_vec.as_mut_slice(), 0u64);
+        assert_eq!(res, TransformResult::Ok);
+        assert_eq!(out_vec, should_vec);
+    }
+
+}
+
+#[cfg(test)]
+mod correctness_regressions {
+    use sequencetransform::TransformResult;
+    use sequencetransform::tokenize::SortedToUInt;
+
+    #[test]
+    fn tokenization_rejects_short_windows_without_panicking() {
+        let trans = SortedToUInt::<u64, 2, 2, 4>::default();
+        let data = [1.0_f32, 2.0, 3.0];
+        assert_eq!(trans.len(&data.iter()), 0);
+        let mut out = [];
+        assert_eq!(trans.transform_self(data.iter(), &mut out, 0), TransformResult::Ok);
+    }
+
+    #[test]
+    fn tokenization_begin_read_is_last_window_start() {
+        let trans = SortedToUInt::<u64, 2, 2, 4>::default();
+        let data = [1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        assert_eq!(trans.len(&data.iter()), 3);
+        assert_eq!(trans.begin_read(&data.iter(), 3), 4);
+    }
+}
+
+#[cfg(test)]
+mod additional_regressions {
+    use sequencetransform::{TransformResult};
+    use sequencetransform::tokenize::SortedToUInt;
+
+    #[test]
+    fn rejects_nan_in_window() {
+        let tokenizer = SortedToUInt::<u64, 2, 2, 4>::default();
+        let input = [1.0_f32, f32::NAN, 3.0, 4.0];
+        let mut output = [0_u64];
+        assert_ne!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+    }
+
+    #[test]
+    fn rejects_token_that_does_not_fit_output_type() {
+        let tokenizer = SortedToUInt::<u8, 3, 2, 5>::default();
+        let input = [5.0_f32, 4.0, 3.0, 2.0, 1.0];
+        let mut output = [0_u8];
+        assert_ne!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+    }
+}
+
+#[cfg(test)]
+mod threshold_regressions {
+    use sequencetransform::{TransformResult};
+    use sequencetransform::tokenize::{SortedToUInt, veci8_to_u64};
+
+    #[test]
+    fn zero_threshold_preserves_original_tokens() {
+        let input = [3.0_f64, 2.96, 3.5, 3.46];
+        let mut old = [0_u64];
+        let mut new = [0_u64];
+        assert_eq!(SortedToUInt::<u64, 2, 0, 4>::default()
+            .transform_self(input.iter(), &mut old, 0), TransformResult::Ok);
+        assert_eq!(SortedToUInt::<u64, 2, 0, 4>::new(0.0)
+            .transform_self(input.iter(), &mut new, 0), TransformResult::Ok);
+        assert_eq!(old, new);
+    }
+
+    #[test]
+    fn small_decline_is_ordered_as_increase() {
+        let input = [1.0_f64, 0.96, 2.0, 1.96];
+        let mut output = [0_u64];
+        let tokenizer = SortedToUInt::<u64, 2, 0, 4>::new(0.05);
+        assert_eq!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+        assert_eq!(output[0], veci8_to_u64::<2>(vec![0, 1, 2, 3]));
+        assert_eq!(input, [1.0, 0.96, 2.0, 1.96]);
+    }
+
+    #[test]
+    fn cumulative_decline_eventually_exceeds_threshold() {
+        let input = [1.0_f64, 0.96, 0.92, 0.88];
+        let mut output = [0_u64];
+        let tokenizer = SortedToUInt::<u64, 2, 0, 4>::new(0.05);
+        assert_eq!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+        // The second decline exceeds the threshold against the adjusted predecessor;
+        // the final decline is again small enough to be suppressed.
+        assert_eq!(output[0], veci8_to_u64::<2>(vec![2, 3, 0, 1]));
+    }
+
+    #[test]
+    fn threshold_is_restarted_for_each_overlapping_window() {
+        let input = [1.0_f64, 0.96, 0.92, 0.88, 0.84, 0.80];
+        let tokenizer = SortedToUInt::<u64, 2, 2, 4>::new(0.05);
+        let mut output = [0_u64; 2];
+        assert_eq!(tokenizer.transform_self(input.iter(), &mut output, 0), TransformResult::Ok);
+        assert_eq!(output[0], output[1]);
+    }
+
+    #[test]
+    fn invalid_threshold_is_rejected() {
+        let input = [1.0_f64, 2.0, 3.0, 4.0];
+        for threshold in [-0.1, f64::NAN, f64::INFINITY] {
+            let mut output = [0_u64];
+            assert_eq!(SortedToUInt::<u64, 2, 0, 4>::new(threshold)
+                .transform_self(input.iter(), &mut output, 0), TransformResult::Error(0));
+        }
+    }
+}

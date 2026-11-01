@@ -1,0 +1,252 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 Witold Kaminski
+
+use num_traits::cast::FromPrimitive;
+
+use crate::*;
+use crate::tokenize::*;
+use crate::transform::*;
+
+impl<ITEMOUT, const CAP_LN2: usize, const OVERLAP: usize, const CAP: usize> Default for SortedToUInt<ITEMOUT, CAP_LN2, OVERLAP, CAP> {
+    fn default() -> Self {
+        SortedToUInt {
+            marker: Default::default(),
+            threshold: 0.0
+        }
+    }
+}
+
+/**
+ *  1  2  3  4  5  6  7  8  9 10 11 -- size    = 11
+ *  1  2  3  4  5                   -- cap     =  5
+ *        1  2  3  4  5             -- overlap =  3 -> cap - overlap = 2
+ *              1  2  3  4  5                       -> last = 6
+ *                    1  2  3  4  5 -> len = 4
+ */
+impl<ITEMOUT, const CAP_LN2: usize, const OVERLAP: usize, const CAP: usize> SortedToUInt<ITEMOUT, CAP_LN2, OVERLAP, CAP>
+where
+    ITEMOUT: 'static + Copy + FromPrimitive
+{
+    /// Construct a tokenizer with an absolute noise threshold.
+    ///
+    /// For positive thresholds, a decline within the threshold relative to
+    /// the *previous adjusted value* is replaced by its next representable
+    /// greater f64 value before ranking. Input data is never modified.
+    /// Use zero for the original exact-ranking algorithm.
+    pub fn new(threshold: f64) -> Self {
+        Self { marker: Default::default(), threshold }
+    }
+
+    // Next representable f64 strictly greater than a finite value.
+    #[inline]
+    fn next_up(value: f64) -> f64 {
+        if value == 0.0 { return f64::from_bits(1); }
+        if value >= 0.0 { f64::from_bits(value.to_bits() + 1) }
+        else { f64::from_bits(value.to_bits() - 1) }
+    }
+
+    /// Compute ranks after suppressing small consecutive declines.
+    /// The adjustment is restarted independently for every token window.
+    fn threshold_order<ITEMIN: Number<ITEMIN>>(
+        &self,
+        input: &[ITEMIN],
+        ranks: &mut [i8],
+    ) -> TransformResult {
+        let mut adjusted = Vec::<f64>::with_capacity(input.len());
+        for &sample in input {
+            let original: f64 = sample.as_();
+            if !original.is_finite() { return TransformResult::Error(1); }
+            let value = if let Some(&previous) = adjusted.last() {
+                if original < previous && previous - original <= self.threshold {
+                    Self::next_up(previous)
+                } else {
+                    original
+                }
+            } else {
+                original
+            };
+            if !value.is_finite() { return TransformResult::Error(1); }
+            adjusted.push(value);
+        }
+
+        let mut indices: Vec<usize> = (0..input.len()).collect();
+        // Stable tie-breaking by original position preserves distinct ranks.
+        indices.sort_by(|&a, &b| {
+            adjusted[a].total_cmp(&adjusted[b]).then(a.cmp(&b))
+        });
+        for (rank, index) in indices.into_iter().enumerate() {
+            ranks[index] = rank as i8;
+        }
+        TransformResult::Ok
+    }
+
+    #[inline(always)]
+    pub fn len<'a, 'b, RI, ITEMIN: 'a>(
+        &self,
+        ri: &RI
+    ) -> usize
+    where
+        'a: 'b,
+        RI: TransformReadIterator<Item = &'a ITEMIN>,
+    {
+        assert!(CAP > 0 && OVERLAP < CAP);
+        ri.len().checked_sub(CAP).map_or(0, |last| last / (CAP - OVERLAP) + 1)
+    }
+
+    /**
+     * always:
+     * calc_len = Self::len(ri)
+     * for optimazation, len needs to be calculated before anyway,
+     * passed as parameter
+     */
+    #[inline(always)]
+    pub fn begin_read<'a, 'b, RI, ITEMIN: 'a>(
+        &self,
+        ri: &RI,
+        calc_len: usize
+    ) -> usize
+    where
+        'a: 'b,
+        RI: TransformReadIterator<Item = &'a ITEMIN>,
+    {
+        assert!(CAP > 0 && OVERLAP < CAP);
+        assert_eq!(calc_len, self.len(ri));
+        if calc_len == 0 { 0 } else { (calc_len - 1) * (CAP - OVERLAP) }
+    }
+
+    #[inline(always)]
+    fn transform_inline<'a, 'b, RI, ITEMIN>(
+        &self,
+        mut ri:       RI,
+        out:          &mut [ITEMOUT],
+        default_out:  ITEMOUT,
+    ) -> TransformResult
+    where
+        'a: 'b,
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+    {
+        const {
+            assert!(CAP > 0 && OVERLAP < CAP);
+            assert!(CAP_LN2 > 0 && CAP_LN2 <= 64);
+            assert!(CAP <= 128);
+            assert!((CAP as u128) <= (1u128 << CAP_LN2));
+            assert!(CAP_LN2 * CAP <= 64);
+        }
+
+        if !self.threshold.is_finite() || self.threshold < 0.0 {
+            return TransformResult::Error(0);
+        }
+        if self.len(&ri) != out.len() {
+            return TransformResult::Error(0);
+        }
+
+        out.fill(default_out);
+        if out.is_empty() { return TransformResult::Ok; }
+        let mut temp_in = Vec::<ITEMIN>::with_capacity(CAP);
+        let mut temp_order = vec![0i8; CAP];
+
+        let order = Order::<i8> { factor: 1 };
+        let mut wi = out.iter_mut();
+
+        // prime first window
+        for _ in 0..CAP {
+            if let Some(x) = ri.next() {
+                temp_in.push(*x);
+            } else {
+                return TransformResult::Error(0);
+            }
+        }
+
+        #[allow(clippy::while_let_loop)]
+        loop {
+            let wt = match wi.next() {
+                Some(w) => w,
+                None => break,
+            };
+
+            // order current window
+            let result = if self.threshold == 0.0 {
+                order.transform_self(temp_in.iter(), temp_order.as_mut_slice())
+            } else {
+                self.threshold_order(&temp_in, &mut temp_order)
+            };
+            if result != TransformResult::Ok { return result; }
+
+            // build token
+            let mut token: u64 = 0;
+            let mut shift: u64 = 0;
+            for val in temp_order.iter() {
+                let mask: u64 = (*val as u64) << shift;
+                token |= mask;
+                shift += CAP_LN2 as u64;
+            }
+
+            let Some(value) = FromPrimitive::from_u64(token) else {
+                return TransformResult::Error(2);
+            };
+            *wt = value;
+
+            // slide window
+            if CAP > OVERLAP {
+                let keep = OVERLAP;
+                let drop = CAP - keep;
+
+                // shift left: keep last `keep` elements
+                temp_in.as_mut_slice().copy_within(drop..CAP, 0);
+
+                // refill tail
+                let mut idx = keep;
+                while idx < CAP {
+                    if let Some(x) = ri.next() {
+                        temp_in[idx] = *x;
+                        idx += 1;
+                    } else {
+                        return TransformResult::Ok;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+
+        TransformResult::Ok
+    }
+
+    pub fn transform_self<'a, RI, ITEMIN>(
+        &self,
+        ri: RI,
+        out:         &mut [ITEMOUT],
+        default_out: ITEMOUT,
+    ) -> TransformResult
+    where
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+    {
+        self.transform_inline(ri, out, default_out)
+    }
+}
+
+
+impl<ITEMOUT, const CAP_LN2: usize, const OVERLAP: usize, const CAP: usize> SequenceTransform<ITEMOUT>
+for SortedToUInt<ITEMOUT, CAP_LN2, OVERLAP, CAP>
+where
+    ITEMOUT: 'static + Number<ITEMOUT>
+{
+
+    fn transform<'a, RI, ITEMIN, CTO>(
+        &self,
+        ri: RI,
+        out:         &mut [ITEMOUT],
+        default_out: ITEMOUT,
+        _conv:       CTO
+    ) -> TransformResult
+    where
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+        CTO:    ConvertTo<ITEMIN, ITEMOUT>,
+    {
+        self.transform_inline(ri, out, default_out)
+    }
+}
+

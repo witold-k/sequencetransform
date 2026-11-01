@@ -1,0 +1,26 @@
+[package]
+name = "sequencetransform"
+version = "0.1.0"
+edition = "2021"
+
+#[build]
+#target = "aarch64-unknown-linux-gnu"
+
+[dependencies]
+# https://github.com/serde-rs/serde
+# The core APIs, including the Serialize and Deserialize traits. Always
+# required when using Serde. The "derive" feature is only required when
+# using #[derive(Serialize, Deserialize)] to make Serde work with structs
+# and enums defined in your crate.
+serde = { version = "1.0", features = ["derive"] }
+rkyv = "0.8.14"
+
+# for number -> string -------------------------------------------------------
+itoa = "1.0.15"
+
+# stack allocated vector and itertools ---------------------------------------
+arrayvec = { version = "0.7.6", features = ["serde"] }
+num-traits = "0.2.19"
+
+# math -----------------------------------------------------------------------
+simplefield = { version = "0.1.0", git = "https://github.com/witold-k/simplefield", rev = "32efb7204b7044d369eccb50e2f5d9ad5414a0b8" }

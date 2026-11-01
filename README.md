@@ -1,0 +1,76 @@
+# sequencetransform
+
+One of my first attempts to learn Rust.
+
+This is a helper library originally written for a larger stock-analysis experiment, more precisely for experiments around technical analysis.
+
+The idea was not to implement a fixed set of well-known indicators. Instead, an indicator was treated as a composition of smaller operations on sequences. The price-dependent part (for example combinations of open, high, low and close values) lives outside this crate. This crate focuses on the time-axis: how values change, how windows are summarized, how events are selected and how several derived sequences can be combined into new signals.
+
+## What it provides
+
+The library contains small generic building blocks for numeric sequences:
+
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope and relative-strength variants;
+- accumulators for sums, rises, falls and weighted variants;
+- selectors such as min, max and median;
+- helpers for retaining or matching values in sorted sequences;
+- trigger-based transforms that combine two sequences;
+- ordering and tokenization of sliding windows, including compact integer representations;
+- utility types for packed small integers and iterator-based processing.
+
+Most operations work on iterators and write into caller-provided output slices. Input and output numeric types can be separated through the `ConvertTo` abstraction.
+
+## How it works
+
+The central abstraction is `SequenceTransform`. A transform reads a cloneable, exact-size, double-ended iterator, applies one operation over the sequence and writes the result into an output slice.
+
+More complex transforms are built from simpler components. For example, moving-window transforms reuse the accumulator and selector modules, while `ZipSequenceTransform` combines a data sequence with a second trigger sequence. `SortedToUInt` goes one step further: it takes overlapping windows, replaces the values by their relative order inside the window and packs that order into an integer token.
+
+The result is a toolbox for constructing experimental signal-processing pipelines instead of one monolithic technical-analysis implementation.
+
+## Status
+
+The original stock-analysis experiment was not successful and active development of this library has stopped.
+
+Today, this repository is mainly kept as an **archive of ideas and experiments around sequence processing** rather than as a finished or maintained library. Some of its concepts may still be useful for future projects.
+
+In particular, a few ideas remain interesting:
+
+- composing sequence analysis from small transforms, accumulators and selectors instead of implementing monolithic indicators;
+- combining a data sequence with a second trigger sequence through `ZipSequenceTransform`;
+- converting sliding windows into scale-independent ordinal patterns and compact integer tokens with `SortedToUInt`.
+
+The last idea in particular may be worth revisiting for pattern recognition, token-based representations or future AI experiments.
+
+Apache-2.0
+
+
+## Transform documentation
+
+[SVG illustration requirements](README_SVG_REQUIREMENTS.md) — numerical fidelity, independent axes, algorithm-specific overlays, and verification.
+
+[Illustrated algorithm reference for every transform](docs/transform/README.md) — per-function explanations, SVG schematics, examples and caveats. Includes the moving indicators and two-sequence MSE/RMSE transforms on this branch.
+
+## Tests
+
+Tests follow the same layout convention as [aiagents](https://github.com/witold-k/aiagents):
+
+- Keep tests under `tests/` rather than mixing them into `src/`.
+- Mirror the relative `src/` module hierarchy inside `tests/`.
+- Name each test file after the source file it exercises, with a `_test.rs` suffix (for example, `src/transform/movingpitch.rs` → `tests/transform/movingpitch_test.rs`).
+- Register new test modules in the appropriate `tests/<module>/mod.rs`; `tests/mod.rs` is the integration-test entry point.
+- Put regression tests alongside the corresponding module tests, not in a catch-all root-level regression file.
+
+Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
+
+## Algorithm contracts and caveats
+
+- `MinusDistance` searches **backward in time** for a signed distance to a historical level crossing, not for an exactly equal value. At each position it skips the immediate predecessor, finds the next older value different from the current level, then looks farther back for a value at or across that level (`>=` after a lower value, `<=` after a higher value). A lower historical deviation gives a positive distance; a higher one gives a negative distance. If no different historical value is found, the result is zero. If no crossing is found after a deviation, the distance extends to the beginning of the available history. Distances count iterator steps and outputs retain chronological alignment. This is causal but can require quadratic time on long sequences.
+- `MinusDistanceSum` is the chronological prefix sum of `MinusDistance` outputs, not a sum of input prices. For input `[1, 2, 3, 2, 1]`, distances are `[0, 0, 2, 3, -4]` and cumulative distances are `[0, 0, 2, 5, 1]`. Both transforms use only the current and older input values; prefix results are unchanged when future samples are appended.
+- `RetainSortedLeft` and `RetainSortedAll` require ascending sorted inputs by their selected keys. `RetainSortedLeft` preserves duplicate left elements if their key occurs on the right; this is not multiset intersection.
+- `RetainSortedAll::normalize_exe_vec` moves nonempty series to the front of the slice and returns the length of the selected prefix. Original positions are not preserved.
+- `Order` gives distinct ordinal positions to tied values. `SortedToUInt` rejects unordered values such as NaN.
+- `OneHotQuantization` rounds `value * factor` and clamps the index to `[0, factor - 1]`. Finite out-of-range values are clamped; nonfinite inputs fail without modifying the output.
+- `MovingPitch(skip_first = true)` backfills its first values using the first complete window. This noncausal behavior is intentionally unchanged pending a separate review.
+- `SelectedSyncAccumulation` and `SelectedSyncAccumulationBorder` propagate the extremum of a completed trigger segment over that segment. This is noncausal and must not be used as a point-in-time ML feature without explicit realignment.
+- `Min` and `Max` return numeric zero for empty input; callers should check emptiness first when zero is meaningful.

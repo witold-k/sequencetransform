@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 Witold Kaminski
+
+use num_traits::cast::FromPrimitive;
+
+use crate::*;
+use crate::transform::*;
+
+// Assigns zero-based ascending ranks at the ORIGINAL input positions.
+// Sorting equal values uses the ordering of OrderEntry; no special shared-rank
+// policy is applied to ties.
+//
+// Factor contract: 0, 1, NaN, +infinity and -infinity all mean
+// "unscaled ranks". Other finite factors multiply each rank.
+// Non-comparable input values (such as NaN) return Error(1).
+// This distinction between input NaN and factor NaN is intentional.
+impl<ITEMOUT> Order<ITEMOUT>
+where
+    ITEMOUT: 'static + Number<ITEMOUT>
+{
+
+    #[inline(always)]
+    fn transform_inline<'a, 'b, RI, ITEMIN>(
+        &self,
+        ri:           RI,
+        out:          &mut [ITEMOUT],
+    ) -> TransformResult
+    where
+        'a: 'b,
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+    {
+        let len = ri.len();
+        if len != out.len() || len > u32::MAX as usize {
+            return TransformResult::Error(0);
+        }
+        let mut temp = Vec::<OrderEntry<ITEMIN>>::with_capacity(len);
+        temp.reserve(len);
+        for (index, val) in ri.enumerate() {
+            if val.partial_cmp(val).is_none() { return TransformResult::Error(1); }
+            temp.push(OrderEntry::<ITEMIN> { position: index as u32, value: *val });
+        }
+        temp.sort();
+        let tri = temp.iter();
+        // A non-finite factor is a request for identity scaling, NOT an error.
+        let factor_f64: f64 = self.factor.as_();
+        if factor_f64.is_finite()
+         && self.factor != FromPrimitive::from_u32(0u32).unwrap()
+         && self.factor != FromPrimitive::from_u32(1u32).unwrap()
+        {
+            for (r, index) in tri.zip(0 .. len) {
+                let val: ITEMOUT = FromPrimitive::from_u32(index as u32).unwrap();
+                let fac: ITEMOUT = val * self.factor;
+                out[r.position as usize] = fac;
+            }
+        }
+        else {
+            for (r, index) in tri.zip(0 .. len) {
+                out[r.position as usize] = FromPrimitive::from_u32(index as u32).unwrap();
+            }
+        }
+
+        TransformResult::Ok
+    }
+
+    pub fn transform_self<'a, RI, ITEMIN>(
+        &self,
+        ri:  RI,
+        out: &mut [ITEMOUT],
+    ) -> TransformResult
+    where
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+    {
+        self.transform_inline(ri, out)
+    }
+}
+
+impl<ITEMOUT> SequenceTransform<ITEMOUT> for Order<ITEMOUT>
+where
+    ITEMOUT: 'static + Number<ITEMOUT>
+{
+
+    fn transform<'a, RI, ITEMIN, CTO>(
+        &self,
+        ri: RI,
+        out:          &mut [ITEMOUT],
+        _default_out: ITEMOUT,
+        _conv:        CTO
+    ) -> TransformResult
+    where
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+        CTO:    ConvertTo<ITEMIN, ITEMOUT>,
+    {
+        self.transform_inline(ri, out)
+    }
+}
+

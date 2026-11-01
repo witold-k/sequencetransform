@@ -1,0 +1,135 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 Witold Kaminski
+
+use crate::ConvertToIdentity;
+use num_traits::cast::FromPrimitive;
+use crate::select::*;
+use crate::iterop::*;
+use crate::ziptransform::*;
+
+impl<ITEMOUT> SelectedAccumulationBorder<ITEMOUT> {
+    pub fn new(border: ITEMOUT) -> Self {
+        SelectedAccumulationBorder { border }
+    }
+}
+
+impl<ITEMOUT> SelectedAccumulationBorder<ITEMOUT>
+where
+    ITEMOUT: 'static + Number<ITEMOUT>
+{
+
+    /// Reduces each completed trigger-active interval to one output value.
+    ///
+    /// Finds a rising trigger edge and the following falling edge, selects
+    /// the maximum data value in that interval, converts it to the output
+    /// type, and emits 1 when the result is >= `border`, otherwise 0.
+    /// Intervals without a subsequent falling edge are not emitted.
+    ///
+    /// Returns the number of output elements written. The output buffer
+    /// may contain more elements than the number of completed intervals.
+    /// Unequal input lengths and an empty output buffer are errors.
+    #[inline(always)]
+    fn transform_inline<'a, 'b, RI, ITEMIN, CTO>(
+        &self,
+        mut ri_data:    RI,
+        mut ri_trigger: RI,
+        out:            &mut [ITEMOUT],
+        conv:           CTO
+    ) -> Result<usize, TransformResult>
+    where
+        'a: 'b,
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+        CTO:    ConvertTo<ITEMIN, ITEMOUT>,
+    {
+        let border = self.border;
+        let len1 = ri_data.len();
+        let len2 = ri_trigger.len();
+        if len1 != len2 {
+            return Err(TransformResult::Error(0));
+        }
+        let wlen = out.len();
+        if wlen == 0 {
+            return Err(TransformResult::Error(1));
+        }
+
+        let sel = Max::<ITEMIN>::default();
+
+        let mut wi = out.iter_mut();
+        // Locate the next rising trigger edge.
+        let mut iup = IterSearchNextUp::<RI, ITEMIN>::new(ri_trigger.clone());
+        loop {
+            match iup.next() {
+                None => {
+                    return Ok(wlen - wi.len());
+                },
+                Some(_) => {
+                    _ = ri_trigger.nth(iup.count);
+                    // Only a matching falling edge completes an interval.
+                    let mut idown = IterSearchNextDown::<RI, ITEMIN>::new(iup.clone_inner());
+                    match idown.next() {
+                        Some (_) => {
+                            _ = ri_data.nth(iup.count);
+                            let ri_datat = ri_data.clone();
+                            _ = ri_data.nth(idown.count);
+                            let ri_datat = ri_datat.take(idown.count + 1);
+                            // Select the interval maximum before converting the result.
+                            let max = sel.select(ri_datat, ConvertToIdentity::<ITEMIN>::default());
+                            let we = match wi.next() {
+                                Some(we) => we,
+                                None     => {
+                                    return Ok(wlen - wi.len());
+                                }
+                            };
+                            let val_out:ITEMOUT = conv.convert(max.item);
+                            *we = if val_out >= border { FromPrimitive::from_u32(1).unwrap() } else { FromPrimitive::from_u32(0).unwrap() };
+                        },
+                        None => {
+                            return Ok(wlen - wi.len());
+                        }
+                    };
+                    iup = IterSearchNextUp::<RI, ITEMIN>::new(idown.move_inner());
+                }
+            };
+        }
+    }
+
+    pub fn transform_self<'a, RI, ITEMIN, CTO>(
+        &self,
+        ri1:         RI,
+        ri2:         RI,
+        out:         &mut [ITEMOUT],
+        conv:        CTO
+    ) -> Result<usize, TransformResult>
+    where
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+        CTO:    ConvertTo<ITEMIN, ITEMOUT>,
+    {
+        self.transform_inline(ri1, ri2, out, conv)
+    }
+}
+
+
+impl<ITEMOUT> ZipSequenceTransform<ITEMOUT> for SelectedAccumulationBorder<ITEMOUT>
+where
+    ITEMOUT: 'static + Number<ITEMOUT>
+{
+
+    fn transform<'a, RI, ITEMIN, CTO>(
+        &self,
+        ri1:         RI,
+        ri2:         RI,
+        out:         &mut [ITEMOUT],
+        _default_in: ITEMIN,
+        conv:        CTO
+    ) -> Result<usize, TransformResult>
+    where
+        RI:     TransformReadIterator<Item = &'a ITEMIN>,
+        ITEMIN: 'a + Number<ITEMIN>,
+        CTO:    ConvertTo<ITEMIN, ITEMOUT>,
+    {
+        self.transform_inline(ri1, ri2, out, conv)
+    }
+}
+
