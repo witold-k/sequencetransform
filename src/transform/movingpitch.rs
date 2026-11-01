@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Witold Kaminski
 
-use num_traits::cast::FromPrimitive;
-
 use crate::transform::*;
-use crate::accumulate::*;
 
 impl<ITEMOUT> MovingPitch<ITEMOUT> {
     pub fn new(count: usize, skip_first: bool) -> Self {
@@ -67,39 +64,40 @@ where
             return TransformResult::Error(0);
         }
 
-        let aa  = AddAll::<ITEMOUT>::default();
-        let aai = AddAllInc::<ITEMOUT>::default();
-
+        // Center both axes before forming the covariance. Subtracting the
+        // first sample avoids cancellation of large common offsets.
         let n = self.count;
         let m = n - 1;
-        let i2: ITEMOUT = FromPrimitive::from_u32(2u32).unwrap();
-        let i6: ITEMOUT = FromPrimitive::from_u32(6u32).unwrap();
+        let Some(two) = ITEMOUT::from_u32(2) else { return TransformResult::Error(2); };
+        let Some(twelve) = ITEMOUT::from_u32(12) else { return TransformResult::Error(2); };
 
-        let skip_first = if self.skip_first { m } else { 1 };
-        let mut wi = out.iter_mut().skip(skip_first);
+        let calculate = |start: usize, width: usize| -> Option<ITEMOUT> {
+            let count = ITEMOUT::from_usize(width)?;
+            let last = ITEMOUT::from_usize(width - 1)?;
+            let center = last / two;
+            // Variance of 0..width-1 about its mean, without usize products.
+            let denominator = count * (count - ITEMOUT::from_u32(1)?)
+                * (count + ITEMOUT::from_u32(1)?) / twelve;
+            if denominator == ITEMOUT::from_u32(0)? { return None; }
+            let mut samples = ri.clone().skip(start).take(width);
+            let base = conv.convert_ref(samples.next()?);
+            let mut covariance = ITEMOUT::from_u32(0)?;
+            for (index, sample) in samples.enumerate() {
+                let x = ITEMOUT::from_usize(index + 1)? - center;
+                covariance += x * (conv.convert_ref(sample) - base);
+            }
+            Some(covariance / denominator)
+        };
 
         if !self.skip_first {
-            for (i, we) in (1 .. m).zip(wi.by_ref()) {
-                let i = i + 1;
-                let f1: ITEMOUT = i6 / FromPrimitive::from_usize(i * (i + 1)).unwrap();
-                let f2: ITEMOUT = i2 / FromPrimitive::from_usize(i - 1).unwrap();
-                let fi  = ri.clone().take(i);
-                // ## FIXME OPTIMIZEME sum, sumi: do not calc each time all
-                *we = f1 * (f2 * (aai.accumulate(fi.clone(), conv.clone()).unwrap()
-                    - aa.accumulate(fi.clone(), conv.clone()).unwrap())
-                    - aa.accumulate(fi, conv.clone()).unwrap());
+            for width in 2..n {
+                let Some(value) = calculate(0, width) else { return TransformResult::Error(2); };
+                out[width - 1] = value;
             }
         }
-
-        let f1: ITEMOUT = i6 / FromPrimitive::from_usize(n * (n + 1)).unwrap();
-        let f2: ITEMOUT = i2 / FromPrimitive::from_usize(m).unwrap();
-        for (i, we) in (0 .. ).zip(wi) {
-            // because of possible nummeric instabilities
-            // maybe sum, sumi needs to be calculated fully
-            let fi  = ri.clone().skip(i).take(n);
-            *we = f1 * (f2 * (aai.accumulate(fi.clone(), conv.clone()).unwrap()
-                - aa.accumulate(fi.clone(), conv.clone()).unwrap())
-                - aa.accumulate(fi, conv.clone()).unwrap());
+        for (end, output) in out.iter_mut().enumerate().skip(m) {
+            let Some(value) = calculate(end + 1 - n, n) else { return TransformResult::Error(2); };
+            *output = value;
         }
 
         if self.skip_first {

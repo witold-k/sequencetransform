@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Witold Kaminski
 
-use num_traits::cast::FromPrimitive;
-
 use crate::transform::*;
 use crate::accumulate::*;
 
@@ -39,15 +37,26 @@ where
 
         let count = self.count;
         let mut wi = out.iter_mut();
-        let rez_count: f64 = 1. / (count as f64);
+        // Divide by the actual window length. Converting a fractional reciprocal
+        // to an integer output type would truncate it to zero.
+        let Some(full_divisor) = ITEMOUT::from_usize(count) else {
+            return TransformResult::Error(2);
+        };
+        if full_divisor == ITEMOUT::from_u8(0).unwrap() {
+            return TransformResult::Error(2);
+        }
 
         for (i, we) in (1 .. count).zip(wi.by_ref()) {
             let fi  = ri.clone().take(i);
-            *we = aa.accumulate(fi, conv.clone()).unwrap() / FromPrimitive::from_usize(i).unwrap();
+            let Some(divisor) = ITEMOUT::from_usize(i) else { return TransformResult::Error(2); };
+            if divisor == ITEMOUT::from_u8(0).unwrap() { return TransformResult::Error(2); }
+            let Some(sum) = aa.accumulate(fi, conv.clone()) else { return TransformResult::Error(2); };
+            *we = sum / divisor;
         }
         for (i, we) in wi.enumerate() {
             let fi  = ri.clone().skip(i).take(count);
-            *we = aa.accumulate(fi, conv.clone()).unwrap() * FromPrimitive::from_f64(rez_count).unwrap() ;
+            let Some(sum) = aa.accumulate(fi, conv.clone()) else { return TransformResult::Error(2); };
+            *we = sum / full_divisor;
         }
 
         TransformResult::Ok
