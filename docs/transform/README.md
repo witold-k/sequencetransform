@@ -21,6 +21,8 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MovingMedianAverage](movingmedianaverage.md)
 - [MovingMedianAverage2](movingmedianaverage2.md)
 - [MovingPitch](movingpitch.md)
+- [MovingAutoregression](movingautoregression.md)
+- [MovingExplainedVariance](movingexplainedvariance.md)
 - [OneHotQuantization](onehotquantization.md)
 - [Order](order.md)
 - [RelativeStrength](relativestrength.md)
