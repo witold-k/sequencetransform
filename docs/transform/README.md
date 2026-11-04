@@ -25,6 +25,7 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MovingAutoregressionChange](movingautoregressionchange.md)
 - [MovingExplainedVariance](movingexplainedvariance.md)
 - [MovingPermutationEntropy](movingpermutationentropy.md)
+- [MovingTimeReversalAsymmetry](movingtimereversalasymmetry.md)
 - [OneHotQuantization](onehotquantization.md)
 - [Order](order.md)
 - [RelativeStrength](relativestrength.md)
