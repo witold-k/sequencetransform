@@ -14,7 +14,7 @@ where ITEMOUT: 'static + Number<ITEMOUT> {
           ITEMIN: 'a + Number<ITEMIN>,
           CTO: ConvertTo<ITEMIN, ITEMOUT> {
         let len = ri.len();
-        if len != out.len() || self.count < 4 || self.count > len || self.count % 2 != 0 {
+        if len != out.len() || self.count < 4 || self.count > len || !self.count.is_multiple_of(2) {
             return TransformResult::Error(0);
         }
         let values: Vec<f64> = ri.map(|x| { let v = conv.convert_ref(x); v.as_() }).collect();
