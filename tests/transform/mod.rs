@@ -14,6 +14,7 @@ mod relativestrength_test;
 mod movingpitch_test;
 mod movingautoregression_test;
 mod movingexplainedvariance_test;
+mod movingpermutationentropy_test;
 mod onehotquantization_test;
 
 mod deltasignum_test;
