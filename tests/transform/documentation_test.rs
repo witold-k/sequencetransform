@@ -11,7 +11,7 @@ fn all_transform_pages_have_english_text_and_both_svg_visualizations() {
         "deltasignum","deltasignumsum","differentiate","heavyside","integrate",
         "maxdirection","minusdistance","minusdistancesum","movingaverage",
         "movingaverageaverage","movingmedian","movingmedian2","movingmedianaverage",
-        "movingmedianaverage2","movingpitch","movingautoregression","movingexplainedvariance","movingpermutationentropy","onehotquantization","order",
+        "movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","onehotquantization","order",
         "relativestrength","relativestrengthweigth","relativestrengthweigthsum",
         "signum","signumsum","sort","movingweightedmedianposition",
         "movingsquaredweightedmedianposition","movingpositivestrength",
