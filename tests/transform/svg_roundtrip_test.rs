@@ -7,7 +7,7 @@ use sequencetransform::transform::sort::Sort;
 use sequencetransform::ziptransform::*;
 use std::fs;
 
-const NAMES: [&str; 38] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","movingtimereversalasymmetry","movingspectralentropy","movingspectralcentroid","movingspectralchange","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
+const NAMES: [&str; 41] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","movingtimereversalasymmetry","movingspectralentropy","movingspectralcentroid","movingspectralchange","movinghiguchidimension","movingmultifractalcurvature","movingrecurrencedeterminism","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
 
 fn array(svg: &str, key: &str) -> Vec<f64> {
     let needle = format!("\"{key}\":[");
@@ -47,6 +47,9 @@ fn calculate(name: &str, input: &[f64]) -> Vec<f64> {
 "movingspectralentropy" => run(MovingSpectralEntropy::<f64>::new(12), input),
 "movingspectralcentroid" => run(MovingSpectralCentroid::<f64>::new(12), input),
 "movingspectralchange" => run(MovingSpectralChange::<f64>::new(12), input),
+"movinghiguchidimension" => run(MovingHiguchiDimension::<f64>::new(32), input),
+"movingmultifractalcurvature" => run(MovingMultifractalCurvature::<f64>::new(32), input),
+"movingrecurrencedeterminism" => run(MovingRecurrenceDeterminism::<f64>::new(32), input),
 "movingpositivestrength" => run(MovingPositiveStrength::<f64>::new(10), input),
 "movingsquaredweightedmedianposition" => run(MovingSquaredWeightedMedianPosition::<f64>::new(9), input),
 "movingweightedmedianposition" => run(MovingWeightedMedianPosition::<f64>::new(9), input),
