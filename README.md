@@ -10,7 +10,7 @@ The idea was not to implement a fixed set of well-known indicators. Instead, an 
 
 The library contains small generic building blocks for numeric sequences:
 
-- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry, spectral entropy, spectral centroid, spectral change, Higuchi dimension, multifractal curvature, recurrence determinism and relative-strength variants;
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry, spectral entropy, spectral centroid, spectral change, ordinal surprise, Lempel-Ziv complexity, Higuchi dimension, multifractal curvature, recurrence determinism and relative-strength variants;
 - accumulators for sums, rises, falls and weighted variants;
 - selectors such as min, max and median;
 - helpers for retaining or matching values in sorted sequences;
