@@ -24,6 +24,7 @@ pub mod movingmedianaverage2;
 pub mod movingpitch;
 pub mod movingautoregression;
 pub mod movingexplainedvariance;
+pub mod movingpermutationentropy;
 pub mod onehotquantization;
 pub mod order;
 pub mod relativestrength;
@@ -127,6 +128,11 @@ pub struct MovingAutoregression<T> { marker: PhantomData<T>, pub count: usize }
 /// Undefined constant windows and incomplete prefixes retain default_out.
 #[derive(Copy, Clone)]
 pub struct MovingExplainedVariance<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized Shannon entropy of ordinal patterns in a trailing window.
+/// Ties are broken by earlier sample position; order is restricted to 2..=7.
+#[derive(Copy, Clone)]
+pub struct MovingPermutationEntropy<T> { marker: PhantomData<T>, pub count: usize, pub order: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
