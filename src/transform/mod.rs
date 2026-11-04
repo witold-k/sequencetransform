@@ -23,6 +23,7 @@ pub mod movingmedian2;
 pub mod movingmedianaverage2;
 pub mod movingpitch;
 pub mod movingautoregression;
+pub mod movingexplainedvariance;
 pub mod onehotquantization;
 pub mod order;
 pub mod relativestrength;
@@ -121,6 +122,11 @@ pub struct MovingPitch<T> { marker: PhantomData<T>, pub count: usize, pub skip_f
 /// count >= 3; only past and current samples are consulted.
 #[derive(Copy, Clone)]
 pub struct MovingAutoregression<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Trailing AR(1) explained variance (squared Pearson correlation) with intercept.
+/// Undefined constant windows and incomplete prefixes retain default_out.
+#[derive(Copy, Clone)]
+pub struct MovingExplainedVariance<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
