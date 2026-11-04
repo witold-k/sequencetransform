@@ -49,7 +49,7 @@ where
     {
         let len = ri.len();
         // Two disjoint halves, each with at least three samples.
-        if len != out.len() || self.count < 6 || self.count % 2 != 0 || self.count > len {
+        if len != out.len() || self.count < 6 || !self.count.is_multiple_of(2) || self.count > len {
             return TransformResult::Error(0);
         }
         let values: Vec<f64> = ri.map(|sample| {
