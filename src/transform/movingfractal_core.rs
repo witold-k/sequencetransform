@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Shared finite-window nonlinear-dynamics estimators.
-use std::f64::consts::LN_2;
 
 pub(crate) enum Feature { Higuchi, Multifractal, Recurrence }
 
@@ -95,7 +94,6 @@ fn recurrence(x:&[f64])->Option<f64>{
     if total==0 {None} else {Some(diagonal as f64/total as f64)}
 }
 pub(crate) fn feature(x:&[f64],kind:Feature)->Option<f64>{
-    let _=LN_2; // no external dependencies
     let result=match kind {
         Feature::Higuchi=>higuchi(x),
         Feature::Multifractal=>multifractal(x),
