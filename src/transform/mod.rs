@@ -28,6 +28,10 @@ pub mod movingexplainedvariance;
 pub mod movingpermutationentropy;
 pub mod movingtimereversalasymmetry;
 mod movingspectral_core;
+mod movingfractal_core;
+pub mod movinghiguchidimension;
+pub mod movingmultifractalcurvature;
+pub mod movingrecurrencedeterminism;
 pub mod movingspectralentropy;
 pub mod movingspectralcentroid;
 pub mod movingspectralchange;
@@ -162,6 +166,18 @@ pub struct MovingSpectralCentroid<T> { marker: PhantomData<T>, pub count: usize 
 /// Total-variation distance between normalized spectra of two disjoint halves.
 #[derive(Copy, Clone)]
 pub struct MovingSpectralChange<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Higuchi fractal dimension estimate over trailing windows (count >= 16).
+#[derive(Copy, Clone)]
+pub struct MovingHiguchiDimension<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Difference between q=1 and q=4 normalized structure-function slopes.
+#[derive(Copy, Clone)]
+pub struct MovingMultifractalCurvature<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Recurrence-plot determinism from two-dimensional delay vectors.
+#[derive(Copy, Clone)]
+pub struct MovingRecurrenceDeterminism<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
