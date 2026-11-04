@@ -7,7 +7,7 @@ use sequencetransform::transform::sort::Sort;
 use sequencetransform::ziptransform::*;
 use std::fs;
 
-const NAMES: [&str; 41] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","movingtimereversalasymmetry","movingspectralentropy","movingspectralcentroid","movingspectralchange","movinghiguchidimension","movingmultifractalcurvature","movingrecurrencedeterminism","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
+const NAMES: [&str; 43] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","movingordinalsurprise","movinglempelzivcomplexity","movingtimereversalasymmetry","movingspectralentropy","movingspectralcentroid","movingspectralchange","movinghiguchidimension","movingmultifractalcurvature","movingrecurrencedeterminism","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
 
 fn array(svg: &str, key: &str) -> Vec<f64> {
     let needle = format!("\"{key}\":[");
@@ -43,6 +43,8 @@ fn calculate(name: &str, input: &[f64]) -> Vec<f64> {
 "movingautoregressionchange" => run(MovingAutoregressionChange::<f64>::new(12), input),
 "movingexplainedvariance" => run(MovingExplainedVariance::<f64>::new(9), input),
 "movingpermutationentropy" => run(MovingPermutationEntropy::<f64>::new(12,3), input),
+"movingordinalsurprise" => run(MovingOrdinalSurprise::<f64>::new(24,3), input),
+"movinglempelzivcomplexity" => run(MovingLempelZivComplexity::<f64>::new(24), input),
 "movingtimereversalasymmetry" => run(MovingTimeReversalAsymmetry::<f64>::new(12), input),
 "movingspectralentropy" => run(MovingSpectralEntropy::<f64>::new(12), input),
 "movingspectralcentroid" => run(MovingSpectralCentroid::<f64>::new(12), input),
