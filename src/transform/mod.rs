@@ -26,6 +26,7 @@ pub mod movingautoregression;
 pub mod movingautoregressionchange;
 pub mod movingexplainedvariance;
 pub mod movingpermutationentropy;
+pub mod movingtimereversalasymmetry;
 pub mod onehotquantization;
 pub mod order;
 pub mod relativestrength;
@@ -139,6 +140,12 @@ pub struct MovingExplainedVariance<T> { marker: PhantomData<T>, pub count: usize
 /// Ties are broken by earlier sample position; order is restricted to 2..=7.
 #[derive(Copy, Clone)]
 pub struct MovingPermutationEntropy<T> { marker: PhantomData<T>, pub count: usize, pub order: usize }
+
+/// Dimensionless normalized third moment of adjacent differences in trailing windows.
+/// Odd under time reversal, invariant to positive affine scaling.
+/// Incomplete or constant windows retain default_out; count >= 2.
+#[derive(Copy, Clone)]
+pub struct MovingTimeReversalAsymmetry<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
