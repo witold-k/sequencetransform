@@ -43,3 +43,12 @@ fn invariant_to_constant_offset() {
         assert!((a[i] - b[i]).abs() < 1e-10, "{}: {} {}", i, a[i], b[i]);
     }
 }
+
+#[test]
+fn high_frequency_tone_has_higher_centroid() {
+    let n = 64;
+    let tone = |k: f64| -> Vec<f64> {
+        (0..n).map(|i| (2.0 * std::f64::consts::PI * k * i as f64 / n as f64).sin()).collect()
+    };
+    assert!(run(&tone(4.0), n, -1.0)[n-1] < run(&tone(20.0), n, -1.0)[n-1]);
+}
