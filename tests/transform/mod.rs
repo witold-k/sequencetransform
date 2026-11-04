@@ -16,6 +16,8 @@ mod movingautoregression_test;
 mod movingautoregressionchange_test;
 mod movingexplainedvariance_test;
 mod movingpermutationentropy_test;
+mod movingordinalsurprise_test;
+mod movinglempelzivcomplexity_test;
 mod movingtimereversalasymmetry_test;
 mod movingspectralentropy_test;
 mod movingspectralcentroid_test;
