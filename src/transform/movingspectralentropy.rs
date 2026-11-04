@@ -3,12 +3,12 @@
 use crate::transform::*;
 use super::movingspectral_core::{feature, Feature};
 
-impl<T> MovingSpectralentropy<T> {
+impl<T> MovingSpectralEntropy<T> {
     pub fn new(count: usize) -> Self {
         Self { marker: Default::default(), count }
     }
 }
-impl<ITEMOUT> SequenceTransform<ITEMOUT> for MovingSpectralentropy<ITEMOUT>
+impl<ITEMOUT> SequenceTransform<ITEMOUT> for MovingSpectralEntropy<ITEMOUT>
 where ITEMOUT: 'static + Number<ITEMOUT> {
     fn transform<'a, RI, ITEMIN, CTO>(
         &self, ri: RI, out: &mut [ITEMOUT], default_out: ITEMOUT, conv: CTO
