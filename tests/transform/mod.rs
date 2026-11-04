@@ -16,6 +16,7 @@ mod movingautoregression_test;
 mod movingautoregressionchange_test;
 mod movingexplainedvariance_test;
 mod movingpermutationentropy_test;
+mod movingtimereversalasymmetry_test;
 mod onehotquantization_test;
 
 mod deltasignum_test;
