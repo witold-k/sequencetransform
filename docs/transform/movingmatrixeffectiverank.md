@@ -4,7 +4,7 @@
 
 ## Algorithm
 
-Take a trailing count>=4 and select Hankel columns in 2..count-1. Construct the (count-columns+1) by columns Hankel matrix from overlapping samples, first subtracting the trailing-window mean from every sample. Compute a **reduced SVD** via the existing `svdwrapper` CPU/LAPACK backend. Normalize positive singular values by their sum and output exp(-sum(p*ln(p))). The effective rank nominally lies between 1 and min(rows,columns), but very small numerical singular values can contribute to its floating-point estimate. Zero-energy windows return default_out. SVD backend errors return Error(2). It describes the distribution of singular values, not a mathematically exact rank or number of independent sources.
+Take a trailing count>=4 and select Hankel columns in 2..count-1. Construct the (count-columns+1) by columns Hankel matrix from overlapping samples, first subtracting the trailing-window mean from every sample. Compute a **reduced SVD** via the existing `svdwrapper` CPU/LAPACK backend. Normalize singular values greater than 1e-12 times the maximum singular value by their sum and output exp(-sum(p*ln(p))). The effective rank nominally lies between 1 and min(rows,columns), but very small numerical singular values can contribute to its floating-point estimate. Windows with maximum centered entry <= 1e-12 return default_out. The input matrix is divided by its maximum absolute entry before the SVD to reduce numerical scaling issues. SVD backend errors return Error(2). It describes the distribution of singular values, not a mathematically exact rank or number of independent sources.
 
 All computations use only the current trailing window. The default example uses `MovingMatrixEffectiveRank::<f64>::new(32,8)`.
 
