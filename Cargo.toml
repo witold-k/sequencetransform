@@ -24,3 +24,7 @@ num-traits = "0.2.19"
 
 # math -----------------------------------------------------------------------
 simplefield = { version = "0.1.0", git = "https://github.com/witold-k/simplefield", rev = "32efb7204b7044d369eccb50e2f5d9ad5414a0b8" }
+
+# Linear algebra: the existing SVD wrapper (CPU/LAPACK backend).
+svdwrapper = { package = "svdwrapper", git = "https://github.com/witold-k/svd_wrapper", default-features = false, features = ["cpu"] }
+ndarray = "0.17.2"
