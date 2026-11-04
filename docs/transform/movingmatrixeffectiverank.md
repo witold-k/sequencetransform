@@ -12,7 +12,7 @@ All computations use only the current trailing window. The default example uses 
 
 ![movingmatrixeffectiverank effect visualization](assets/movingmatrixeffectiverank-effect.svg)
 
-The 50-sample numerical illustration uses count 32 and 8 Hankel columns; initial positions receive `default_out=0`. Blue represents the input and orange the output, each on its own vertical scale. The SVG includes its numerical data as metadata.
+The 50-sample conceptual illustration uses count 32 and 8 Hankel columns; initial positions receive `default_out=0`. Blue represents the input and orange the output, each on its own vertical scale. The SVG is a schematic visualization, not a numerical regression reference.
 
 ## Window diagram
 
