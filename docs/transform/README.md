@@ -22,6 +22,7 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MovingMedianAverage2](movingmedianaverage2.md)
 - [MovingPitch](movingpitch.md)
 - [MovingAutoregression](movingautoregression.md)
+- [MovingAutoregressionChange](movingautoregressionchange.md)
 - [MovingExplainedVariance](movingexplainedvariance.md)
 - [MovingPermutationEntropy](movingpermutationentropy.md)
 - [OneHotQuantization](onehotquantization.md)
