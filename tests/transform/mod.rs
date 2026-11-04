@@ -12,6 +12,23 @@ mod order_test;
 mod relativestrength_test;
 
 mod movingpitch_test;
+mod movingautoregression_test;
+mod movingautoregressionchange_test;
+mod movingexplainedvariance_test;
+mod movingpermutationentropy_test;
+mod movingordinalsurprise_test;
+mod movinglempelzivcomplexity_test;
+mod movingoptimaltransport_test;
+mod movingconvexhulldeficit_test;
+mod movingisotonicresidual_test;
+mod movingmatrixeffectiverank_test;
+mod movingtimereversalasymmetry_test;
+mod movingspectralentropy_test;
+mod movingspectralcentroid_test;
+mod movingspectralchange_test;
+mod movinghiguchidimension_test;
+mod movingmultifractalcurvature_test;
+mod movingrecurrencedeterminism_test;
 mod onehotquantization_test;
 
 mod deltasignum_test;

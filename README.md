@@ -10,7 +10,7 @@ The idea was not to implement a fixed set of well-known indicators. Instead, an 
 
 The library contains small generic building blocks for numeric sequences:
 
-- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope and relative-strength variants;
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry, spectral entropy, spectral centroid, spectral change, ordinal surprise, Lempel-Ziv complexity, Wasserstein transport, convex-hull deficit, isotonic residual, Hankel effective rank, Higuchi dimension, multifractal curvature, recurrence determinism and relative-strength variants;
 - accumulators for sums, rises, falls and weighted variants;
 - selectors such as min, max and median;
 - helpers for retaining or matching values in sorted sequences;
@@ -64,6 +64,24 @@ Tests follow the same layout convention as [aiagents](https://github.com/witold-
 Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
 
 ## Algorithm contracts and caveats
+
+- `MovingHiguchiDimension` estimates graph scaling by Higuchi's method with k_max=min(count/4,16). `MovingMultifractalCurvature` compares q=1 and q=4 structure-function slopes over lags 1..min(count/4,32). `MovingRecurrenceDeterminism` uses delay-1 two-dimensional states, a range-relative recurrence threshold and diagonal lines of length >=2. These are experimental finite-window estimators, not proofs of fractality, multifractality or deterministic dynamics.
+
+
+- `MovingSpectralEntropy`, `MovingSpectralCentroid`, and `MovingSpectralChange` use a shared direct one-sided DFT after mean subtraction and Hann tapering. DC is excluded; interior bins have doubled one-sided power. Undefined zero-energy windows retain `default_out`. Spectral change compares disjoint half-window normalized spectra by total-variation distance and requires even `count >= 8`. All three are causal and use O(count²) work per output window.
+
+
+- `MovingTimeReversalAsymmetry` computes the signed third moment of adjacent increments divided by the three-halves power of their squared sum, over trailing windows (`count >= 2`). It lies in [-1,1], changes sign when the window is reversed, and is invariant to positive affine rescaling. Constant and incomplete windows retain `default_out`. A nonzero score is not by itself evidence of statistically significant time irreversibility; drift and skewed increments also contribute.
+
+
+- `MovingAutoregressionChange` compares the AR(1) OLS slopes of two disjoint half-windows, returning their absolute difference. It requires an even window length of at least six; undefined half-window slopes retain `default_out`. This is not a statistical change-point significance test.
+
+
+- `MovingPermutationEntropy` counts ordinal patterns of length 2..=7 in trailing windows, breaking ties by original position. It reports Shannon entropy divided by ln(order!), with incomplete windows left at `default_out`. Small windows cannot populate all patterns; high entropy is not proof of randomness.
+
+
+- `MovingAutoregression` estimates the trailing AR(1) coefficient with intercept; `MovingExplainedVariance` reports its local R². Both use adjacent pairs inside the same trailing window, require `count >= 3`, and leave incomplete or constant windows at `default_out`. They measure in-window fit, not out-of-sample forecast accuracy.
+
 
 - `MinusDistance` searches **backward in time** for a signed distance to a historical level crossing, not for an exactly equal value. At each position it skips the immediate predecessor, finds the next older value different from the current level, then looks farther back for a value at or across that level (`>=` after a lower value, `<=` after a higher value). A lower historical deviation gives a positive distance; a higher one gives a negative distance. If no different historical value is found, the result is zero. If no crossing is found after a deviation, the distance extends to the beginning of the available history. Distances count iterator steps and outputs retain chronological alignment. This is causal but can require quadratic time on long sequences.
 - `MinusDistanceSum` is the chronological prefix sum of `MinusDistance` outputs, not a sum of input prices. For input `[1, 2, 3, 2, 1]`, distances are `[0, 0, 2, 3, -4]` and cumulative distances are `[0, 0, 2, 5, 1]`. Both transforms use only the current and older input values; prefix results are unchanged when future samples are appended.

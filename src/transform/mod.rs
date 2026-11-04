@@ -22,6 +22,26 @@ pub mod movingmedianaverage;
 pub mod movingmedian2;
 pub mod movingmedianaverage2;
 pub mod movingpitch;
+pub mod movingautoregression;
+pub mod movingautoregressionchange;
+pub mod movingexplainedvariance;
+pub mod movingpermutationentropy;
+pub mod movingordinalsurprise;
+pub mod movinglempelzivcomplexity;
+pub mod movingtimereversalasymmetry;
+mod movingspectral_core;
+mod movingfractal_core;
+mod movinggeometry_core;
+pub mod movingoptimaltransport;
+pub mod movingconvexhulldeficit;
+pub mod movingisotonicresidual;
+pub mod movingmatrixeffectiverank;
+pub mod movinghiguchidimension;
+pub mod movingmultifractalcurvature;
+pub mod movingrecurrencedeterminism;
+pub mod movingspectralentropy;
+pub mod movingspectralcentroid;
+pub mod movingspectralchange;
 pub mod onehotquantization;
 pub mod order;
 pub mod relativestrength;
@@ -114,6 +134,82 @@ pub struct MovingMedianAverage2<T> { marker: PhantomData<T>, pub median_count: u
 /// With `skip_first = true`, the initial values are backfilled noncausally.
 #[derive(Copy, Clone)]
 pub struct MovingPitch<T> { marker: PhantomData<T>, pub count: usize, pub skip_first: bool }
+
+/// Trailing AR(1) OLS coefficient with intercept. The first count-1 outputs
+/// and windows with zero predictor variance retain default_out.
+/// count >= 3; only past and current samples are consulted.
+#[derive(Copy, Clone)]
+pub struct MovingAutoregression<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Absolute difference of AR(1) slopes between disjoint older and newer half-windows.
+/// Even count >= 6; undefined slopes and incomplete prefixes retain default_out.
+#[derive(Copy, Clone)]
+pub struct MovingAutoregressionChange<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Trailing AR(1) explained variance (squared Pearson correlation) with intercept.
+/// Undefined constant windows and incomplete prefixes retain default_out.
+#[derive(Copy, Clone)]
+pub struct MovingExplainedVariance<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized Shannon entropy of ordinal patterns in a trailing window.
+/// Ties are broken by earlier sample position; order is restricted to 2..=7.
+#[derive(Copy, Clone)]
+pub struct MovingPermutationEntropy<T> { marker: PhantomData<T>, pub count: usize, pub order: usize }
+
+/// Dimensionless normalized third moment of adjacent differences in trailing windows.
+/// Odd under time reversal, invariant to positive affine scaling.
+/// Incomplete or constant windows retain default_out; count >= 2.
+#[derive(Copy, Clone)]
+pub struct MovingTimeReversalAsymmetry<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized Shannon entropy of the non-DC one-sided Hann-tapered power spectrum.
+#[derive(Copy, Clone)]
+pub struct MovingSpectralEntropy<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized frequency-weighted centroid of the non-DC Hann power spectrum.
+#[derive(Copy, Clone)]
+pub struct MovingSpectralCentroid<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Total-variation distance between normalized spectra of two disjoint halves.
+#[derive(Copy, Clone)]
+pub struct MovingSpectralChange<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Higuchi fractal dimension estimate over trailing windows (count >= 16).
+#[derive(Copy, Clone)]
+pub struct MovingHiguchiDimension<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Difference between q=1 and q=4 normalized structure-function slopes.
+#[derive(Copy, Clone)]
+pub struct MovingMultifractalCurvature<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Recurrence-plot determinism from two-dimensional delay vectors.
+#[derive(Copy, Clone)]
+pub struct MovingRecurrenceDeterminism<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Laplace-smoothed held-out ordinal transition surprise; count >= order+2.
+#[derive(Copy, Clone)]
+pub struct MovingOrdinalSurprise<T> { marker: PhantomData<T>, pub count: usize, pub order: usize }
+
+/// Normalized LZ76 complexity of three-symbol consecutive differences.
+#[derive(Copy, Clone)]
+pub struct MovingLempelZivComplexity<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Wasserstein-1 distance between sorted disjoint halves of a trailing even window.
+#[derive(Copy, Clone)]
+pub struct MovingOptimalTransport<T> { marker: PhantomData<T>, pub count: usize }
+
+/// One minus the normalized planar convex-hull area of the trailing graph.
+#[derive(Copy, Clone)]
+pub struct MovingConvexHullDeficit<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Minimum increasing/decreasing isotonic squared residual over total variance.
+#[derive(Copy, Clone)]
+pub struct MovingIsotonicResidual<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Entropy-based effective rank of a mean-centered trailing Hankel matrix.
+/// The CPU backend of svdwrapper performs the reduced SVD.
+#[derive(Copy, Clone)]
+pub struct MovingMatrixEffectiveRank<T> { marker: PhantomData<T>, pub count: usize, pub columns: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,

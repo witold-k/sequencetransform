@@ -7,7 +7,7 @@ use sequencetransform::transform::sort::Sort;
 use sequencetransform::ziptransform::*;
 use std::fs;
 
-const NAMES: [&str; 30] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
+const NAMES: [&str; 43] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","movingordinalsurprise","movinglempelzivcomplexity","movingtimereversalasymmetry","movingspectralentropy","movingspectralcentroid","movingspectralchange","movinghiguchidimension","movingmultifractalcurvature","movingrecurrencedeterminism","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
 
 fn array(svg: &str, key: &str) -> Vec<f64> {
     let needle = format!("\"{key}\":[");
@@ -39,6 +39,19 @@ fn calculate(name: &str, input: &[f64]) -> Vec<f64> {
 "movingmedianaverage" => run(MovingMedianAverage::<f64>::new(9,5), input),
 "movingmedianaverage2" => run(MovingMedianAverage2::<f64>::new(8,5), input),
 "movingpitch" => run(MovingPitch::<f64>::new(9,false), input),
+"movingautoregression" => run(MovingAutoregression::<f64>::new(9), input),
+"movingautoregressionchange" => run(MovingAutoregressionChange::<f64>::new(12), input),
+"movingexplainedvariance" => run(MovingExplainedVariance::<f64>::new(9), input),
+"movingpermutationentropy" => run(MovingPermutationEntropy::<f64>::new(12,3), input),
+"movingordinalsurprise" => run(MovingOrdinalSurprise::<f64>::new(24,3), input),
+"movinglempelzivcomplexity" => run(MovingLempelZivComplexity::<f64>::new(24), input),
+"movingtimereversalasymmetry" => run(MovingTimeReversalAsymmetry::<f64>::new(12), input),
+"movingspectralentropy" => run(MovingSpectralEntropy::<f64>::new(12), input),
+"movingspectralcentroid" => run(MovingSpectralCentroid::<f64>::new(12), input),
+"movingspectralchange" => run(MovingSpectralChange::<f64>::new(12), input),
+"movinghiguchidimension" => run(MovingHiguchiDimension::<f64>::new(32), input),
+"movingmultifractalcurvature" => run(MovingMultifractalCurvature::<f64>::new(32), input),
+"movingrecurrencedeterminism" => run(MovingRecurrenceDeterminism::<f64>::new(32), input),
 "movingpositivestrength" => run(MovingPositiveStrength::<f64>::new(10), input),
 "movingsquaredweightedmedianposition" => run(MovingSquaredWeightedMedianPosition::<f64>::new(9), input),
 "movingweightedmedianposition" => run(MovingWeightedMedianPosition::<f64>::new(9), input),
