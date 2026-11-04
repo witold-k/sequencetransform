@@ -8,8 +8,8 @@ fn transport(x: &[f64]) -> Option<f64> {
     let n = x.len()/2;
     let mut a = x[..n].to_vec();
     let mut b = x[n..].to_vec();
-    a.sort_unstable_by(f64::total_cmp);
-    b.sort_unstable_by(f64::total_cmp);
+    a.sort_unstable_by(|u,v| u.total_cmp(v));
+    b.sort_unstable_by(|u,v| u.total_cmp(v));
     Some(a.iter().zip(b.iter()).map(|(u,v)| (u-v).abs()).sum::<f64>()/n as f64)
 }
 fn cross(a:(f64,f64),b:(f64,f64),c:(f64,f64))->f64{
