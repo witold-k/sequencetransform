@@ -43,3 +43,11 @@ fn invariant_to_constant_offset() {
         assert!((a[i] - b[i]).abs() < 1e-10, "{}: {} {}", i, a[i], b[i]);
     }
 }
+
+#[test]
+fn pure_tone_has_lower_entropy_than_mixed_tones() {
+    let n = 64;
+    let tone: Vec<f64> = (0..n).map(|i| (2.0 * std::f64::consts::PI * 6.0 * i as f64 / n as f64).sin()).collect();
+    let mixed: Vec<f64> = (0..n).map(|i| (1..=20).map(|k| (2.0 * std::f64::consts::PI * k as f64 * i as f64 / n as f64).sin()).sum()).collect();
+    assert!(run(&tone, n, -1.0)[n-1] < run(&mixed, n, -1.0)[n-1]);
+}
