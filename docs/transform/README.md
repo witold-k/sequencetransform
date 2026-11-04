@@ -2,7 +2,7 @@
 
 [← Main README](../../README.md)
 
-Each public transform has its own documentation page explaining the algorithm, input/output behavior, numerical examples, and boundary conditions. The effect diagrams plot the numerical examples stated on each page. Window diagrams highlight sample dependencies, not additional measurements.
+Each public transform has its own documentation page explaining the algorithm, input/output behavior, and boundary conditions. Most effect diagrams plot numerical examples; the transport, convex-hull, isotonic and matrix-rank pages currently use explicitly labeled conceptual curves. Window diagrams highlight sample dependencies, not additional measurements.
 
 ## Individual transforms
 
@@ -67,7 +67,7 @@ These are experimental algorithms. Before using them as point-in-time ML feature
 
 ## Fifty-sample plots and numeric verification
 
-Every transform page includes a 50-sample input/output SVG. Its window sketch is separate. The SVG stores 50 input values, 50 output values and its coordinate scale in machine-readable metadata. The regression test `tests/transform/svg_roundtrip_test.rs` reads those values, reconstructs numbers from the plotted SVG Y coordinates, and compares both with the actual Rust implementation. Run `cargo test svg_effect_curves_match_actual_rust_transforms` after changing a plot. The figures are not considered verified until this test passes.
+Most transform pages include a 50-sample input/output SVG with its window sketch separate. Numeric regression plots store 50 input values, 50 output values and coordinate scales in machine-readable metadata. The four new geometric/matrix transforms currently have conceptual effect diagrams without numerical metadata and are excluded from the roundtrip test. The regression test `tests/transform/svg_roundtrip_test.rs` reads those values, reconstructs numbers from the plotted SVG Y coordinates, and compares both with the actual Rust implementation. Run `cargo test svg_effect_curves_match_actual_rust_transforms` after changing a plot. The figures are not considered verified until this test passes.
 
 For MSE/RMSE, the blue curve is pointwise squared error between two signals. For OneHotQuantization, the orange curve is the chosen bin index, not the expanded one-hot output. `Order` and `Sort` operate on the whole sequence, not causally over time.
 
