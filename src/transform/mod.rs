@@ -26,6 +26,8 @@ pub mod movingautoregression;
 pub mod movingautoregressionchange;
 pub mod movingexplainedvariance;
 pub mod movingpermutationentropy;
+pub mod movingordinalsurprise;
+pub mod movinglempelzivcomplexity;
 pub mod movingtimereversalasymmetry;
 mod movingspectral_core;
 mod movingfractal_core;
@@ -178,6 +180,14 @@ pub struct MovingMultifractalCurvature<T> { marker: PhantomData<T>, pub count: u
 /// Recurrence-plot determinism from two-dimensional delay vectors.
 #[derive(Copy, Clone)]
 pub struct MovingRecurrenceDeterminism<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Laplace-smoothed held-out ordinal transition surprise; count >= order+2.
+#[derive(Copy, Clone)]
+pub struct MovingOrdinalSurprise<T> { marker: PhantomData<T>, pub count: usize, pub order: usize }
+
+/// Normalized LZ76 complexity of three-symbol consecutive differences.
+#[derive(Copy, Clone)]
+pub struct MovingLempelZivComplexity<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
