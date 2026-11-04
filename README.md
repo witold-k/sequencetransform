@@ -10,7 +10,7 @@ The idea was not to implement a fixed set of well-known indicators. Instead, an 
 
 The library contains small generic building blocks for numeric sequences:
 
-- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, AR(1) explained variance and relative-strength variants;
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, AR(1) explained variance, ordinal-pattern permutation entropy and relative-strength variants;
 - accumulators for sums, rises, falls and weighted variants;
 - selectors such as min, max and median;
 - helpers for retaining or matching values in sorted sequences;
@@ -64,6 +64,9 @@ Tests follow the same layout convention as [aiagents](https://github.com/witold-
 Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
 
 ## Algorithm contracts and caveats
+
+- `MovingPermutationEntropy` counts ordinal patterns of length 2..=7 in trailing windows, breaking ties by original position. It reports Shannon entropy divided by ln(order!), with incomplete windows left at `default_out`. Small windows cannot populate all patterns; high entropy is not proof of randomness.
+
 
 - `MovingAutoregression` estimates the trailing AR(1) coefficient with intercept; `MovingExplainedVariance` reports its local R². Both use adjacent pairs inside the same trailing window, require `count >= 3`, and leave incomplete or constant windows at `default_out`. They measure in-window fit, not out-of-sample forecast accuracy.
 
