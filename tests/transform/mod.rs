@@ -12,6 +12,7 @@ mod order_test;
 mod relativestrength_test;
 
 mod movingpitch_test;
+mod movingautoregression_test;
 mod onehotquantization_test;
 
 mod deltasignum_test;
