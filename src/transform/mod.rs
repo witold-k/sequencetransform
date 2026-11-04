@@ -23,6 +23,7 @@ pub mod movingmedian2;
 pub mod movingmedianaverage2;
 pub mod movingpitch;
 pub mod movingautoregression;
+pub mod movingautoregressionchange;
 pub mod movingexplainedvariance;
 pub mod movingpermutationentropy;
 pub mod onehotquantization;
@@ -123,6 +124,11 @@ pub struct MovingPitch<T> { marker: PhantomData<T>, pub count: usize, pub skip_f
 /// count >= 3; only past and current samples are consulted.
 #[derive(Copy, Clone)]
 pub struct MovingAutoregression<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Absolute difference of AR(1) slopes between disjoint older and newer half-windows.
+/// Even count >= 6; undefined slopes and incomplete prefixes retain default_out.
+#[derive(Copy, Clone)]
+pub struct MovingAutoregressionChange<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Trailing AR(1) explained variance (squared Pearson correlation) with intercept.
 /// Undefined constant windows and incomplete prefixes retain default_out.
