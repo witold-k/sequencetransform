@@ -39,15 +39,17 @@ where ITEMOUT: 'static + Number<ITEMOUT> {
                 }
             }
             // A zero matrix has undefined singular-value probabilities.
-            let energy: f64 = matrix.iter().map(|v| v*v).sum();
-            if !energy.is_finite() || energy<=0.0 { continue; }
+            let amplitude = matrix.iter().fold(0.0_f64, |m, v| m.max(v.abs()));
+            if !amplitude.is_finite() || amplitude <= 1e-12 { continue; }
+            matrix.mapv_inplace(|v| v / amplitude);
             let Ok(decomposition) = svd.compute(&matrix, SvdMode::Reduced) else {
                 return TransformResult::Error(2);
             };
-            let total: f64 = decomposition.s.iter().sum();
+            let maximum = decomposition.s.iter().copied().fold(0.0_f64, f64::max);
+            let total: f64 = decomposition.s.iter().copied().filter(|&s| s > maximum * 1e-12).sum();
             if !total.is_finite() || total<=0.0 { continue; }
             let entropy: f64 = decomposition.s.iter()
-                .filter(|&&s| s>0.0)
+                .filter(|&&s| s > maximum * 1e-12)
                 .map(|&s| {
                     let p=s/total;
                     -p*p.ln()
