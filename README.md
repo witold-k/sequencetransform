@@ -10,7 +10,7 @@ The idea was not to implement a fixed set of well-known indicators. Instead, an 
 
 The library contains small generic building blocks for numeric sequences:
 
-- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope and relative-strength variants;
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, AR(1) explained variance and relative-strength variants;
 - accumulators for sums, rises, falls and weighted variants;
 - selectors such as min, max and median;
 - helpers for retaining or matching values in sorted sequences;
@@ -64,6 +64,9 @@ Tests follow the same layout convention as [aiagents](https://github.com/witold-
 Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
 
 ## Algorithm contracts and caveats
+
+- `MovingAutoregression` estimates the trailing AR(1) coefficient with intercept; `MovingExplainedVariance` reports its local R². Both use adjacent pairs inside the same trailing window, require `count >= 3`, and leave incomplete or constant windows at `default_out`. They measure in-window fit, not out-of-sample forecast accuracy.
+
 
 - `MinusDistance` searches **backward in time** for a signed distance to a historical level crossing, not for an exactly equal value. At each position it skips the immediate predecessor, finds the next older value different from the current level, then looks farther back for a value at or across that level (`>=` after a lower value, `<=` after a higher value). A lower historical deviation gives a positive distance; a higher one gives a negative distance. If no different historical value is found, the result is zero. If no crossing is found after a deviation, the distance extends to the beginning of the available history. Distances count iterator steps and outputs retain chronological alignment. This is causal but can require quadratic time on long sequences.
 - `MinusDistanceSum` is the chronological prefix sum of `MinusDistance` outputs, not a sum of input prices. For input `[1, 2, 3, 2, 1]`, distances are `[0, 0, 2, 3, -4]` and cumulative distances are `[0, 0, 2, 5, 1]`. Both transforms use only the current and older input values; prefix results are unchanged when future samples are appended.
