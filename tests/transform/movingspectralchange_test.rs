@@ -43,3 +43,17 @@ fn invariant_to_constant_offset() {
         assert!((a[i] - b[i]).abs() < 1e-10, "{}: {} {}", i, a[i], b[i]);
     }
 }
+
+#[test]
+fn spectral_change_detects_frequency_shift() {
+    let half = 32;
+    let tone = |k: f64| -> Vec<f64> {
+        (0..half).map(|i| (2.0 * std::f64::consts::PI * k * i as f64 / half as f64).sin()).collect()
+    };
+    let mut stable = tone(4.0);
+    stable.extend(tone(4.0));
+    let mut changed = tone(4.0);
+    changed.extend(tone(12.0));
+    assert!(run(&stable, 64, -1.0)[63] < 1e-10);
+    assert!(run(&changed, 64, -1.0)[63] > 0.5);
+}
