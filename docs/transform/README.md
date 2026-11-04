@@ -23,6 +23,7 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MovingPitch](movingpitch.md)
 - [MovingAutoregression](movingautoregression.md)
 - [MovingExplainedVariance](movingexplainedvariance.md)
+- [MovingPermutationEntropy](movingpermutationentropy.md)
 - [OneHotQuantization](onehotquantization.md)
 - [Order](order.md)
 - [RelativeStrength](relativestrength.md)
