@@ -39,7 +39,7 @@ where
             return TransformResult::Error(1);
         }
         let n = self.count - 1;
-        for end in self.count - 1..len {
+        for (end, output) in out.iter_mut().enumerate().skip(self.count - 1) {
             let start = end + 1 - self.count;
             // Shift both series before summation to avoid cancellation on
             // large common offsets. Means are estimated separately.
@@ -67,7 +67,7 @@ where
                     let Some(value) = ITEMOUT::from_f64(coefficient) else {
                         return TransformResult::Error(2);
                     };
-                    out[end] = value;
+                    *output = value;
                 }
             }
             // Undefined (constant predictor) -> default_out.
