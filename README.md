@@ -10,7 +10,7 @@ The idea was not to implement a fixed set of well-known indicators. Instead, an 
 
 The library contains small generic building blocks for numeric sequences:
 
-- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry, spectral entropy, spectral centroid, spectral change and relative-strength variants;
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry, spectral entropy, spectral centroid, spectral change, Higuchi dimension, multifractal curvature, recurrence determinism and relative-strength variants;
 - accumulators for sums, rises, falls and weighted variants;
 - selectors such as min, max and median;
 - helpers for retaining or matching values in sorted sequences;
@@ -64,6 +64,9 @@ Tests follow the same layout convention as [aiagents](https://github.com/witold-
 Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
 
 ## Algorithm contracts and caveats
+
+- `MovingHiguchiDimension` estimates graph scaling by Higuchi's method with k_max=min(count/4,16). `MovingMultifractalCurvature` compares q=1 and q=4 structure-function slopes over lags 1..min(count/4,32). `MovingRecurrenceDeterminism` uses delay-1 two-dimensional states, a range-relative recurrence threshold and diagonal lines of length >=2. These are experimental finite-window estimators, not proofs of fractality, multifractality or deterministic dynamics.
+
 
 - `MovingSpectralEntropy`, `MovingSpectralCentroid`, and `MovingSpectralChange` use a shared direct one-sided DFT after mean subtraction and Hann tapering. DC is excluded; interior bins have doubled one-sided power. Undefined zero-energy windows retain `default_out`. Spectral change compares disjoint half-window normalized spectra by total-variation distance and requires even `count >= 8`. All three are causal and use O(count²) work per output window.
 
