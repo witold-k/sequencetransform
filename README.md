@@ -10,7 +10,7 @@ The idea was not to implement a fixed set of well-known indicators. Instead, an 
 
 The library contains small generic building blocks for numeric sequences:
 
-- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry and relative-strength variants;
+- transforms such as differentiation, integration, sign, moving average, moving median, linear-regression slope, moving AR(1) coefficient, change between AR(1) coefficients, AR(1) explained variance, ordinal-pattern permutation entropy, normalized time-reversal asymmetry, spectral entropy, spectral centroid, spectral change and relative-strength variants;
 - accumulators for sums, rises, falls and weighted variants;
 - selectors such as min, max and median;
 - helpers for retaining or matching values in sorted sequences;
@@ -64,6 +64,9 @@ Tests follow the same layout convention as [aiagents](https://github.com/witold-
 Run `cargo test` to execute the suite; `just` also runs the configured build, tests and Clippy checks.
 
 ## Algorithm contracts and caveats
+
+- `MovingSpectralEntropy`, `MovingSpectralCentroid`, and `MovingSpectralChange` use a shared direct one-sided DFT after mean subtraction and Hann tapering. DC is excluded; interior bins have doubled one-sided power. Undefined zero-energy windows retain `default_out`. Spectral change compares disjoint half-window normalized spectra by total-variation distance and requires even `count >= 8`. All three are causal and use O(count²) work per output window.
+
 
 - `MovingTimeReversalAsymmetry` computes the signed third moment of adjacent increments divided by the three-halves power of their squared sum, over trailing windows (`count >= 2`). It lies in [-1,1], changes sign when the window is reversed, and is invariant to positive affine rescaling. Constant and incomplete windows retain `default_out`. A nonzero score is not by itself evidence of statistically significant time irreversibility; drift and skewed increments also contribute.
 
