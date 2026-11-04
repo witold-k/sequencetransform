@@ -25,6 +25,8 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MovingAutoregressionChange](movingautoregressionchange.md)
 - [MovingExplainedVariance](movingexplainedvariance.md)
 - [MovingPermutationEntropy](movingpermutationentropy.md)
+- [MovingOrdinalSurprise](movingordinalsurprise.md)
+- [MovingLempelZivComplexity](movinglempelzivcomplexity.md)
 - [MovingTimeReversalAsymmetry](movingtimereversalasymmetry.md)
 - [MovingSpectralEntropy](movingspectralentropy.md)
 - [MovingSpectralCentroid](movingspectralcentroid.md)
