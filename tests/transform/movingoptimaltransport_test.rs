@@ -26,8 +26,12 @@ fn run(data:&[f64], count:usize)->Vec<f64> {
 }
 #[test] fn shift_and_permutation() {
     let x=[1.,2.,3.,4.,6.,7.,8.,9.];
-    let o=run(&x,8);
+    let mut output=[0.0;8];
+    assert_eq!(MovingOptimalTransport::<f64>::new(8).transform(x.iter(),&mut output,-7.0,ConvertToIdentity::default()),TransformResult::Ok);
+    let o=output;
     assert!((o[7]-5.0).abs()<1e-12);
     let y=[4.,3.,2.,1.,9.,8.,7.,6.];
-    assert!((run(&y,8)[7]-5.0).abs()<1e-12);
+    let mut other=[0.0;8];
+    assert_eq!(MovingOptimalTransport::<f64>::new(8).transform(y.iter(),&mut other,-7.0,ConvertToIdentity::default()),TransformResult::Ok);
+    assert!((other[7]-5.0).abs()<1e-12);
 }
