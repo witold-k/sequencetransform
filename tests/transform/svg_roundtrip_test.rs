@@ -7,7 +7,7 @@ use sequencetransform::transform::sort::Sort;
 use sequencetransform::ziptransform::*;
 use std::fs;
 
-const NAMES: [&str; 32] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingexplainedvariance","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
+const NAMES: [&str; 33] = ["deltasignum","deltasignumsum","differentiate","heavyside","integrate","maxdirection","minusdistance","minusdistancesum","movingaverage","movingaverageaverage","movingdirection","movingmaxcrossinglevel","movingmeansquareerror","movingmedian","movingmedian2","movingmedianaverage","movingmedianaverage2","movingpitch","movingautoregression","movingexplainedvariance","movingpermutationentropy","movingpositivestrength","movingrootmeansquareerror","movingsquaredweightedmedianposition","movingweightedmedianposition","onehotquantization","order","relativestrength","relativestrengthweigth","relativestrengthweigthsum","signum","signumsum","sort"];
 
 fn array(svg: &str, key: &str) -> Vec<f64> {
     let needle = format!("\"{key}\":[");
@@ -41,6 +41,7 @@ fn calculate(name: &str, input: &[f64]) -> Vec<f64> {
 "movingpitch" => run(MovingPitch::<f64>::new(9,false), input),
 "movingautoregression" => run(MovingAutoregression::<f64>::new(9), input),
 "movingexplainedvariance" => run(MovingExplainedVariance::<f64>::new(9), input),
+"movingpermutationentropy" => run(MovingPermutationEntropy::<f64>::new(12,3), input),
 "movingpositivestrength" => run(MovingPositiveStrength::<f64>::new(10), input),
 "movingsquaredweightedmedianposition" => run(MovingSquaredWeightedMedianPosition::<f64>::new(9), input),
 "movingweightedmedianposition" => run(MovingWeightedMedianPosition::<f64>::new(9), input),
