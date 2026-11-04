@@ -12,7 +12,7 @@ All computations use only the current trailing window. The default example uses 
 
 ![movingoptimaltransport effect visualization](assets/movingoptimaltransport-effect.svg)
 
-The 50-sample numerical illustration uses count 32; initial positions receive `default_out=0`. Blue represents the input and orange the output, each on its own vertical scale. The SVG includes its numerical data as metadata.
+The 50-sample conceptual illustration uses count 32; initial positions receive `default_out=0`. Blue represents the input and orange the output, each on its own vertical scale. The SVG is a schematic visualization, not a numerical regression reference.
 
 ## Window diagram
 
