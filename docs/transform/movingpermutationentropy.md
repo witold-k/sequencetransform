@@ -20,7 +20,7 @@ The shaded region represents the trailing samples from which overlapping ordinal
 
 **50-sample effect plot:** count=12, order=3, default_out=0. The SVG embeds 50 input and output values. The Rust test `svg_effect_curves_match_actual_rust_transforms` checks the values and coordinates.
 
-**Numerical example:** input `[0,1,0,1]`, count=4, order=2, default_out=0 produces `[0,0,0,1]`: the three adjacent pairs yield two increasing patterns and one decreasing pattern, so the actual entropy is `-(2/3 ln(2/3) + 1/3 ln(1/3)) / ln(2) ≈ 0.9183`, not 1. (Thus the exact output is `[0,0,0,0.9182958340544896]`.)
+**Numerical example:** input `[0,1,0,1]`, count=4, order=2, default_out=0 has output `[0,0,0,0.9182958340544896]`: the three adjacent pairs yield two increasing patterns and one decreasing pattern, so the actual entropy is `-(2/3 ln(2/3) + 1/3 ln(1/3)) / ln(2) ≈ 0.9183`, not 1.
 
 ## Boundary conditions and interpretation
 
