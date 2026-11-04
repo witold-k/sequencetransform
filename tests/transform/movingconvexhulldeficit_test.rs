@@ -9,7 +9,7 @@ fn run(data:&[f64], count:usize)->Vec<f64> {
     out
 }
 #[test] fn causal_and_valid(){
-    let x:Vec<f64>=(0..80).map(|i|(i as f64*.31).sin()+.12*(i as f64*.7).cos()).collect();
+    let x:Vec<f64>=(0..80).map(|i|(i as f64*0.31).sin()+0.12*(i as f64*0.7).cos()).collect();
     let original=run(&x,32);
     assert!(original[..31].iter().all(|v|*v==-7.0));
     assert!(original[31..].iter().all(|v|v.is_finite()));
