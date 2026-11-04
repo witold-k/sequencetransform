@@ -31,6 +31,11 @@ pub mod movinglempelzivcomplexity;
 pub mod movingtimereversalasymmetry;
 mod movingspectral_core;
 mod movingfractal_core;
+mod movinggeometry_core;
+pub mod movingoptimaltransport;
+pub mod movingconvexhulldeficit;
+pub mod movingisotonicresidual;
+pub mod movingmatrixeffectiverank;
 pub mod movinghiguchidimension;
 pub mod movingmultifractalcurvature;
 pub mod movingrecurrencedeterminism;
@@ -188,6 +193,23 @@ pub struct MovingOrdinalSurprise<T> { marker: PhantomData<T>, pub count: usize, 
 /// Normalized LZ76 complexity of three-symbol consecutive differences.
 #[derive(Copy, Clone)]
 pub struct MovingLempelZivComplexity<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Wasserstein-1 distance between sorted disjoint halves of a trailing even window.
+#[derive(Copy, Clone)]
+pub struct MovingOptimalTransport<T> { marker: PhantomData<T>, pub count: usize }
+
+/// One minus the normalized planar convex-hull area of the trailing graph.
+#[derive(Copy, Clone)]
+pub struct MovingConvexHullDeficit<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Minimum increasing/decreasing isotonic squared residual over total variance.
+#[derive(Copy, Clone)]
+pub struct MovingIsotonicResidual<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Entropy-based effective rank of a mean-centered trailing Hankel matrix.
+/// The CPU backend of svdwrapper performs the reduced SVD.
+#[derive(Copy, Clone)]
+pub struct MovingMatrixEffectiveRank<T> { marker: PhantomData<T>, pub count: usize, pub columns: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
