@@ -27,6 +27,10 @@ pub mod movingautoregressionchange;
 pub mod movingexplainedvariance;
 pub mod movingpermutationentropy;
 pub mod movingtimereversalasymmetry;
+mod movingspectral_core;
+pub mod movingspectralentropy;
+pub mod movingspectralcentroid;
+pub mod movingspectralchange;
 pub mod onehotquantization;
 pub mod order;
 pub mod relativestrength;
@@ -146,6 +150,18 @@ pub struct MovingPermutationEntropy<T> { marker: PhantomData<T>, pub count: usiz
 /// Incomplete or constant windows retain default_out; count >= 2.
 #[derive(Copy, Clone)]
 pub struct MovingTimeReversalAsymmetry<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized Shannon entropy of the non-DC one-sided Hann-tapered power spectrum.
+#[derive(Copy, Clone)]
+pub struct MovingSpectralEntropy<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized frequency-weighted centroid of the non-DC Hann power spectrum.
+#[derive(Copy, Clone)]
+pub struct MovingSpectralCentroid<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Total-variation distance between normalized spectra of two disjoint halves.
+#[derive(Copy, Clone)]
+pub struct MovingSpectralChange<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
