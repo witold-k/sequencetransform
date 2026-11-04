@@ -22,6 +22,7 @@ pub mod movingmedianaverage;
 pub mod movingmedian2;
 pub mod movingmedianaverage2;
 pub mod movingpitch;
+pub mod movingautoregression;
 pub mod onehotquantization;
 pub mod order;
 pub mod relativestrength;
@@ -114,6 +115,12 @@ pub struct MovingMedianAverage2<T> { marker: PhantomData<T>, pub median_count: u
 /// With `skip_first = true`, the initial values are backfilled noncausally.
 #[derive(Copy, Clone)]
 pub struct MovingPitch<T> { marker: PhantomData<T>, pub count: usize, pub skip_first: bool }
+
+/// Trailing AR(1) OLS coefficient with intercept. The first count-1 outputs
+/// and windows with zero predictor variance retain default_out.
+/// count >= 3; only past and current samples are consulted.
+#[derive(Copy, Clone)]
+pub struct MovingAutoregression<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Quantize each sample to a one-hot vector with `factor` output bins.
 /// Output length is input length times `factor`; values are scaled, rounded,
