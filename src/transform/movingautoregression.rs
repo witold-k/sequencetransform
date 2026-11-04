@@ -2,7 +2,6 @@
 //! Trailing AR(1) ordinary-least-squares coefficient with an intercept.
 //! For each full window x[0..count], regress x[1..count] on x[0..count-1].
 use crate::transform::*;
-use num_traits::cast::AsPrimitive;
 
 impl<T> MovingAutoregression<T> {
     pub fn new(count: usize) -> Self {
