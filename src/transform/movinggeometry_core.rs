@@ -49,8 +49,8 @@ fn pava_error(x:&[f64],increasing:bool)->f64 {
         while blocks.len()>=2 {
             let n=blocks.len();
             if blocks[n-2].0<=blocks[n-1].0 {break;}
-            let (m2,w2)=blocks.pop().unwrap();
-            let (m1,w1)=blocks.pop().unwrap();
+            let Some((m2,w2)) = blocks.pop() else { break; };
+            let Some((m1,w1)) = blocks.pop() else { break; };
             let w=w1+w2;
             blocks.push(((m1*w1 as f64+m2*w2 as f64)/w as f64,w));
         }
