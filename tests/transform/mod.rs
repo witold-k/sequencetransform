@@ -20,6 +20,9 @@ mod movingtimereversalasymmetry_test;
 mod movingspectralentropy_test;
 mod movingspectralcentroid_test;
 mod movingspectralchange_test;
+mod movinghiguchidimension_test;
+mod movingmultifractalcurvature_test;
+mod movingrecurrencedeterminism_test;
 mod onehotquantization_test;
 
 mod deltasignum_test;
