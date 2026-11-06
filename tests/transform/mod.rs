@@ -4,6 +4,7 @@
 mod integrate_test;
 mod maxdirection_test;
 mod movingaverage_test;
+mod movingareamedian_test;
 mod minusdistancesum_test;
 mod movingmedian_test;
 mod movingmedian2_test;
