@@ -77,3 +77,32 @@ For MSE/RMSE, the blue curve is pointwise squared error between two signals. For
 ### Independent vertical scales
 
 The blue input curve uses the **left Y-axis**, while the orange output curve uses the **right Y-axis**. Each axis is independently scaled from its own series minimum to maximum, so both curves use the full plot height even when their numerical magnitudes differ greatly. The two Y-axis values at the same screen height are **not numerically equal**. Constant series remain horizontal at mid-height because their minimum equals their maximum. Both plotted curves and both numeric axis ranges are checked by `svg_effect_curves_match_actual_rust_transforms`.
+
+
+## SequenceType: primary property classification
+
+Every transformation in `transform` exposes a public associated constant
+`SEQUENCE_TYPE: SequenceType`. The `SequenceClassification` trait exposes
+the same constant for generic code. Classifications are declared centrally
+in [src/transform/mod.rs](../../src/transform/mod.rs).
+
+```rust
+use sequencetransform::transform::{MovingPitch, SequenceType};
+assert_eq!(MovingPitch::<f64>::SEQUENCE_TYPE, SequenceType::Trend);
+```
+
+The categories are: `Trend`, `Momentum`, `Volatility`, `Level`,
+`TemporalPosition`, `Convergence`, `Complexity`, `Dependence`,
+`Predictability`, `Frequency`, `RegimeChange`, `Geometry`,
+`Recurrence`, `Asymmetry`, and `Processing`.
+
+Each transform has **one primary category**, not an exhaustive list of
+possible statistical relationships. `Processing` denotes transformations
+that manipulate or encode a sequence rather than measuring a property.
+`Volatility` is reserved for direct fluctuation-magnitude estimators;
+none of the currently classified transforms is a direct volatility estimator.
+The category is available for future transforms.
+
+The classification is useful for restricting candidate feature combinations,
+but does not guarantee low correlation or predictive value within or across
+categories. Measure redundancy on training data before relying on it.

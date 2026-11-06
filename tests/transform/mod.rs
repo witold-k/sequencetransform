@@ -56,3 +56,5 @@ mod movingmedianaverage_test;
 mod documentation_test;
 
 mod svg_roundtrip_test;
+
+mod sequence_type_test;

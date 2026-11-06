@@ -293,3 +293,256 @@ where
 
 pub mod movingindicators;
 pub use movingindicators::{MovingWeightedMedianPosition, MovingSquaredWeightedMedianPosition, MovingPositiveStrength, MovingDirection, MovingMaxCrossingLevel};
+
+
+/// Primary **measured property** of a sequence transformation.
+///
+/// This classification groups transforms by the information they are intended
+/// to extract, rather than by their algorithm (e.g. regression, Fourier
+/// analysis or sorting). It is designed for coarse feature-family selection
+/// and controlling combinatorial growth in ensembles.
+///
+/// Exactly **one primary category** is assigned to each transform. This is a
+/// semantic label, not a proof of statistical independence: two different
+/// categories can still be highly correlated, and a single transform may
+/// convey several properties. The label also makes no claim about predictive
+/// value or whether a signal is appropriate for financial time series.
+///
+/// The categories are not ordered. In particular, `Complexity` is not
+/// interchangeable with `Volatility`, and `Momentum` is not equivalent to
+/// `Trend`. `Processing` explicitly distinguishes operations that transform
+/// data from indicators that measure a sequence property.
+///
+/// # Examples
+///
+/// ```
+/// use sequencetransform::transform::{MovingAreaMedian, MovingPitch, SequenceType};
+/// assert_eq!(MovingPitch::<f64>::SEQUENCE_TYPE, SequenceType::Trend);
+/// assert_eq!(MovingAreaMedian::<f64>::SEQUENCE_TYPE, SequenceType::TemporalPosition);
+/// ```
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum SequenceType {
+    /// **Trend:** Overall directional tendency or slope over an interval.
+    ///
+    /// Measures whether the sequence rises, falls, or follows a monotone
+    /// trajectory, often through a slope or a trend-fit residual. Unlike
+    /// `Momentum`, this concerns the direction of the *overall shape* rather
+    /// than the relative strength of individual upward/downward increments.
+    ///
+    /// Examples: `MovingPitch`, `MovingExtremaBisectorSlope`,
+    /// `MovingIsotonicResidual` (which measures deviation from monotonicity).
+    Trend,
+
+    /// **Momentum:** Balance, accumulation or strength of signed movements.
+    ///
+    /// Measures changes between observations, or their directional
+    /// predominance, without necessarily fitting an overall trend line.
+    /// A choppy sequence can have substantial signed-movement activity
+    /// even when its long-term trend is weak.
+    ///
+    /// Examples: `Differentiate`, `RelativeStrength`,
+    /// `MovingPositiveStrength`.
+    Momentum,
+
+    /// **Volatility:** Magnitude of fluctuations, irrespective of direction.
+    ///
+    /// Includes estimators such as the standard deviation of increments,
+    /// realized variation or absolute return dispersion. It is conceptually
+    /// distinct from entropy (`Complexity`) and frequency (`Frequency`):
+    /// a perfectly periodic oscillation can have high volatility but low
+    /// irregularity. Currently reserved for future direct estimators.
+    Volatility,
+
+    /// **Level:** Typical value or reference level within the sequence.
+    ///
+    /// Includes arithmetic means, medians, order statistics and levels
+    /// selected by crossings. It primarily describes *where* observations
+    /// lie on the value axis, not when they occur or how quickly they move.
+    ///
+    /// Examples: `MovingAverage`, `MovingMedian`,
+    /// `MovingMaxCrossingLevel`.
+    Level,
+
+    /// **Temporal position:** Where a feature or weighted mass lies in time.
+    ///
+    /// Distinguishes early from late concentration of values or events
+    /// within a window, even when the overall level is unchanged. It does
+    /// not, by itself, assert a rising/falling trend or forecast a reversal.
+    ///
+    /// Examples: `MovingAreaMedian`, `MovingWeightedMedianPosition`,
+    /// `MinusDistance`.
+    TemporalPosition,
+
+    /// **Convergence:** Narrowing or widening of geometric boundaries.
+    ///
+    /// Measures whether lines or envelopes representing different parts
+    /// of the sequence approach each other or separate over time. The
+    /// direction of the center line is a separate property (`Trend`).
+    ///
+    /// Example: `MovingExtremaConvergence`.
+    Convergence,
+
+    /// **Complexity:** Irregularity, diversity or effective dimensionality.
+    ///
+    /// Includes ordinal and spectral entropy, symbolic compressibility,
+    /// fractal scaling and matrix effective rank. Different estimators
+    /// capture different kinds of complexity; equal categories do not
+    /// imply interchangeable signals. High complexity is not necessarily
+    /// high volatility or low predictability.
+    ///
+    /// Examples: `MovingPermutationEntropy`,
+    /// `MovingLempelZivComplexity`, `MovingMatrixEffectiveRank`.
+    Complexity,
+
+    /// **Dependence:** Statistical relationship across time lags.
+    ///
+    /// Describes persistence or coupling of successive observations, such
+    /// as an autoregressive coefficient. A positive dependence need not
+    /// imply a positive trend; a stationary process may be persistent.
+    ///
+    /// Example: `MovingAutoregression`.
+    Dependence,
+
+    /// **Predictability:** Fit quality or surprise under a specified model.
+    ///
+    /// Measures how well a sequence is explained by a model or how unlikely
+    /// its transitions are under an estimated pattern distribution. It is
+    /// always relative to that model; it does **not** establish actual
+    /// out-of-sample forecasting performance.
+    ///
+    /// Examples: `MovingExplainedVariance`, `MovingOrdinalSurprise`.
+    Predictability,
+
+    /// **Frequency:** Location of energy in the temporal frequency spectrum.
+    ///
+    /// Describes characteristic oscillation rates, as distinct from
+    /// spectral *diversity* (`Complexity`) or change between two spectra
+    /// (`RegimeChange`). No periodicity is guaranteed.
+    ///
+    /// Example: `MovingSpectralCentroid`.
+    Frequency,
+
+    /// **Regime change:** Difference in behavior between portions of time.
+    ///
+    /// Compares older and newer windows or model parameters to measure
+    /// structural change. The output need not indicate the direction of
+    /// a price movement, nor prove a persistent change of regime.
+    ///
+    /// Examples: `MovingAutoregressionChange`,
+    /// `MovingSpectralChange`, `MovingOptimalTransport`.
+    RegimeChange,
+
+    /// **Geometry:** Shape of the graph in the time-value plane.
+    ///
+    /// Measures spatial features of the trajectory, such as its convex
+    /// hull, rather than only its value distribution or frequency content.
+    /// Specific geometry descriptors may overlap with trend or complexity.
+    ///
+    /// Example: `MovingConvexHullDeficit`.
+    Geometry,
+
+    /// **Recurrence:** Reappearance of similar states or trajectories.
+    ///
+    /// Describes repeated configurations in an embedded state space,
+    /// including their tendency to form deterministic-looking sequences.
+    /// This is distinct from simple autocorrelation (`Dependence`).
+    ///
+    /// Example: `MovingRecurrenceDeterminism`.
+    Recurrence,
+
+    /// **Asymmetry:** Difference between forward and backward time ordering.
+    ///
+    /// Measures properties that change under reversal of the observation
+    /// sequence. This is not synonymous with positive/negative trend or
+    /// statistical skewness of the raw value distribution.
+    ///
+    /// Example: `MovingTimeReversalAsymmetry`.
+    Asymmetry,
+
+    /// **Processing:** Representation or accumulation, not a measured feature.
+    ///
+    /// Covers transformations such as encoding, sorting, sign mapping or
+    /// integration whose primary role is to reshape or aggregate input
+    /// data. These should usually be treated as pipeline operations rather
+    /// than competing indicator families during feature selection.
+    ///
+    /// Examples: `OneHotQuantization`, `Order`, `Integrate`, `Signum`.
+    Processing,
+}
+
+/// Type-level access to the primary sequence property.
+pub trait SequenceClassification {
+    const SEQUENCE_TYPE: SequenceType;
+}
+
+// Keep classification in one auditable table, rather than spreading it
+// across implementation modules. Each transform also exposes an inherent
+// `SEQUENCE_TYPE` constant for ergonomic access.
+macro_rules! classify_sequence_transforms {
+    ($($name:ident => $kind:ident),+ $(,)?) => {
+        $(
+            impl<T> SequenceClassification for $name<T> {
+                const SEQUENCE_TYPE: SequenceType = SequenceType::$kind;
+            }
+            impl<T> $name<T> {
+                pub const SEQUENCE_TYPE: SequenceType = SequenceType::$kind;
+            }
+        )+
+    };
+}
+classify_sequence_transforms!(
+    DeltaSignum => Momentum,
+    DeltaSignumSum => Momentum,
+    Differentiate => Momentum,
+    Heavyside => Momentum,
+    Integrate => Processing,
+    MinusDistance => TemporalPosition,
+    MinusDistanceSum => TemporalPosition,
+    MaxDirection => Trend,
+    MovingAverage => Level,
+    MovingAreaMedian => TemporalPosition,
+    MovingExtremaConvergence => Convergence,
+    MovingExtremaBisectorSlope => Trend,
+    MovingAverageAverage => Level,
+    MovingMedian => Level,
+    MovingMedianAverage => Level,
+    MovingMedian2 => Level,
+    MovingMedianAverage2 => Level,
+    MovingPitch => Trend,
+    MovingAutoregression => Dependence,
+    MovingAutoregressionChange => RegimeChange,
+    MovingExplainedVariance => Predictability,
+    MovingPermutationEntropy => Complexity,
+    MovingTimeReversalAsymmetry => Asymmetry,
+    MovingSpectralEntropy => Complexity,
+    MovingSpectralCentroid => Frequency,
+    MovingSpectralChange => RegimeChange,
+    MovingHiguchiDimension => Complexity,
+    MovingMultifractalCurvature => Complexity,
+    MovingRecurrenceDeterminism => Recurrence,
+    MovingOrdinalSurprise => Predictability,
+    MovingLempelZivComplexity => Complexity,
+    MovingOptimalTransport => RegimeChange,
+    MovingConvexHullDeficit => Geometry,
+    MovingIsotonicResidual => Trend,
+    MovingMatrixEffectiveRank => Complexity,
+    OneHotQuantization => Processing,
+    RelativeStrength => Momentum,
+    RelativeStrengthWeigth => Momentum,
+    RelativeStrengthWeigthSum => Momentum,
+    Signum => Processing,
+    SignumSum => Momentum,
+    MovingWeightedMedianPosition => TemporalPosition,
+    MovingSquaredWeightedMedianPosition => TemporalPosition,
+    MovingPositiveStrength => Momentum,
+    MovingDirection => Trend,
+    MovingMaxCrossingLevel => Level
+);
+
+// Order<T> has an explicit Number<T> bound on the type itself.
+impl<T: Number<T>> SequenceClassification for Order<T> {
+    const SEQUENCE_TYPE: SequenceType = SequenceType::Processing;
+}
+impl<T: Number<T>> Order<T> {
+    pub const SEQUENCE_TYPE: SequenceType = SequenceType::Processing;
+}
