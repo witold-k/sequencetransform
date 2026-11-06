@@ -9,7 +9,7 @@ fn all_transform_pages_have_english_text_and_both_svg_visualizations() {
     let root=PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs/transform");
     let names=[
         "deltasignum","deltasignumsum","differentiate","heavyside","integrate",
-        "maxdirection","minusdistance","minusdistancesum","movingaverage","movingareamedian","movingextremaconvergence",
+        "maxdirection","minusdistance","minusdistancesum","movingaverage","movingareamedian","movingextremaconvergence","movingextremabisectorslope",
         "movingaverageaverage","movingmedian","movingmedian2","movingmedianaverage",
         "movingmedianaverage2","movingpitch","movingautoregression","movingautoregressionchange","movingexplainedvariance","movingpermutationentropy","movingordinalsurprise","movinglempelzivcomplexity","movingoptimaltransport","movingconvexhulldeficit","movingisotonicresidual","movingmatrixeffectiverank","movingtimereversalasymmetry","movingspectralentropy","movingspectralcentroid","movingspectralchange","movinghiguchidimension","movingmultifractalcurvature","movingrecurrencedeterminism","onehotquantization","order",
         "relativestrength","relativestrengthweigth","relativestrengthweigthsum",
