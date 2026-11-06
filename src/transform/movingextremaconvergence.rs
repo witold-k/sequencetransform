@@ -36,7 +36,7 @@ fn angle(window: &[f64]) -> Option<f64> {
     let unsigned = (lower - upper).abs().atan2(1.0 + lower * upper);
     // Evaluate separation at the current time. The sign follows its time derivative:
     // shrinking => positive (convergence), widening => negative (divergence).
-    let extrapolate = |(i,j):(usize,usize), m:f64| {
+    let extrapolate = |(i, _):(usize,usize), m:f64| {
         let y = (scaled[i] - scaled[indices[0]]) / range;
         y + m * (1.0 - i as f64 / (n-1) as f64)
     };
