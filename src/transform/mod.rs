@@ -16,6 +16,7 @@ pub mod minusdistance;
 pub mod minusdistancesum;
 pub mod maxdirection;
 pub mod movingaverage;
+pub mod movingareamedian;
 pub mod movingaverageaverage;
 pub mod movingmedian;
 pub mod movingmedianaverage;
@@ -98,6 +99,11 @@ pub struct MaxDirection<T> { marker: PhantomData<T>, pub count: usize }
 /// Initial positions use the available prefix; `count` must be positive and fit the input.
 #[derive(Copy, Clone)]
 pub struct MovingAverage<T> { marker: PhantomData<T>, pub count: usize }
+
+/// Normalized time at which half the area above the trailing minimum is reached.
+/// Uses trapezoidal integration with interpolation; incomplete windows use default_out.
+#[derive(Copy, Clone)]
+pub struct MovingAreaMedian<T> { marker: PhantomData<T>, pub count: usize }
 
 /// Apply two trailing arithmetic means in sequence.
 /// `first_count` and `second_count` are the respective window sizes.
