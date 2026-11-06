@@ -51,6 +51,15 @@ fn position(window: &[f64]) -> Option<f64> {
         cumulative.add(area);
         if cumulative.value() >= target || i + 2 == window.len() {
             let remaining = (target - before).clamp(0.0, area);
+            if cumulative.value() == target && i + 2 < heights.len() {
+                let mut end = i + 1;
+                while end + 1 < heights.len() && heights[end] == 0.0 && heights[end + 1] == 0.0 {
+                    end += 1;
+                }
+                if end > i + 1 {
+                    return Some(((i + 1 + end) as f64 * 0.5) / (window.len() - 1) as f64);
+                }
+            }
             // When a plateau carries zero area at the halfway mark,
             // select the center of the entire zero-area plateau.
             if area == 0.0 {
