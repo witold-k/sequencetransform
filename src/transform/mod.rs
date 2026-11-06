@@ -295,42 +295,178 @@ pub mod movingindicators;
 pub use movingindicators::{MovingWeightedMedianPosition, MovingSquaredWeightedMedianPosition, MovingPositiveStrength, MovingDirection, MovingMaxCrossingLevel};
 
 
-/// Primary kind of information represented by a sequence transformation.
+/// Primary **measured property** of a sequence transformation.
 ///
-/// This is a coarse, mutually exclusive grouping intended for feature selection.
-/// It does not assert predictive power or statistical independence; some
-/// transformations also contain information belonging to other categories.
+/// This classification groups transforms by the information they are intended
+/// to extract, rather than by their algorithm (e.g. regression, Fourier
+/// analysis or sorting). It is designed for coarse feature-family selection
+/// and controlling combinatorial growth in ensembles.
+///
+/// Exactly **one primary category** is assigned to each transform. This is a
+/// semantic label, not a proof of statistical independence: two different
+/// categories can still be highly correlated, and a single transform may
+/// convey several properties. The label also makes no claim about predictive
+/// value or whether a signal is appropriate for financial time series.
+///
+/// The categories are not ordered. In particular, `Complexity` is not
+/// interchangeable with `Volatility`, and `Momentum` is not equivalent to
+/// `Trend`. `Processing` explicitly distinguishes operations that transform
+/// data from indicators that measure a sequence property.
+///
+/// # Examples
+///
+/// ```
+/// use sequencetransform::transform::{MovingAreaMedian, MovingPitch, SequenceType};
+/// assert_eq!(MovingPitch::<f64>::SEQUENCE_TYPE, SequenceType::Trend);
+/// assert_eq!(MovingAreaMedian::<f64>::SEQUENCE_TYPE, SequenceType::TemporalPosition);
+/// ```
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum SequenceType {
-    /// Direction or slope of the sequence.
+    /// **Trend:** Overall directional tendency or slope over an interval.
+    ///
+    /// Measures whether the sequence rises, falls, or follows a monotone
+    /// trajectory, often through a slope or a trend-fit residual. Unlike
+    /// `Momentum`, this concerns the direction of the *overall shape* rather
+    /// than the relative strength of individual upward/downward increments.
+    ///
+    /// Examples: `MovingPitch`, `MovingExtremaBisectorSlope`,
+    /// `MovingIsotonicResidual` (which measures deviation from monotonicity).
     Trend,
-    /// Relative upward/downward movement and directional impulses.
+
+    /// **Momentum:** Balance, accumulation or strength of signed movements.
+    ///
+    /// Measures changes between observations, or their directional
+    /// predominance, without necessarily fitting an overall trend line.
+    /// A choppy sequence can have substantial signed-movement activity
+    /// even when its long-term trend is weak.
+    ///
+    /// Examples: `Differentiate`, `RelativeStrength`,
+    /// `MovingPositiveStrength`.
     Momentum,
-    /// Magnitude or dispersion of fluctuations.
+
+    /// **Volatility:** Magnitude of fluctuations, irrespective of direction.
+    ///
+    /// Includes estimators such as the standard deviation of increments,
+    /// realized variation or absolute return dispersion. It is conceptually
+    /// distinct from entropy (`Complexity`) and frequency (`Frequency`):
+    /// a perfectly periodic oscillation can have high volatility but low
+    /// irregularity. Currently reserved for future direct estimators.
     Volatility,
-    /// Central tendency, rank-based level or reference level.
+
+    /// **Level:** Typical value or reference level within the sequence.
+    ///
+    /// Includes arithmetic means, medians, order statistics and levels
+    /// selected by crossings. It primarily describes *where* observations
+    /// lie on the value axis, not when they occur or how quickly they move.
+    ///
+    /// Examples: `MovingAverage`, `MovingMedian`,
+    /// `MovingMaxCrossingLevel`.
     Level,
-    /// Position of an event or mass within the observation window.
+
+    /// **Temporal position:** Where a feature or weighted mass lies in time.
+    ///
+    /// Distinguishes early from late concentration of values or events
+    /// within a window, even when the overall level is unchanged. It does
+    /// not, by itself, assert a rising/falling trend or forecast a reversal.
+    ///
+    /// Examples: `MovingAreaMedian`, `MovingWeightedMedianPosition`,
+    /// `MinusDistance`.
     TemporalPosition,
-    /// Narrowing or widening of geometric boundaries.
+
+    /// **Convergence:** Narrowing or widening of geometric boundaries.
+    ///
+    /// Measures whether lines or envelopes representing different parts
+    /// of the sequence approach each other or separate over time. The
+    /// direction of the center line is a separate property (`Trend`).
+    ///
+    /// Example: `MovingExtremaConvergence`.
     Convergence,
-    /// Irregularity, entropy or effective dimensionality.
+
+    /// **Complexity:** Irregularity, diversity or effective dimensionality.
+    ///
+    /// Includes ordinal and spectral entropy, symbolic compressibility,
+    /// fractal scaling and matrix effective rank. Different estimators
+    /// capture different kinds of complexity; equal categories do not
+    /// imply interchangeable signals. High complexity is not necessarily
+    /// high volatility or low predictability.
+    ///
+    /// Examples: `MovingPermutationEntropy`,
+    /// `MovingLempelZivComplexity`, `MovingMatrixEffectiveRank`.
     Complexity,
-    /// Temporal or autoregressive dependence.
+
+    /// **Dependence:** Statistical relationship across time lags.
+    ///
+    /// Describes persistence or coupling of successive observations, such
+    /// as an autoregressive coefficient. A positive dependence need not
+    /// imply a positive trend; a stationary process may be persistent.
+    ///
+    /// Example: `MovingAutoregression`.
     Dependence,
-    /// How well a simple model or transition pattern explains the sequence.
+
+    /// **Predictability:** Fit quality or surprise under a specified model.
+    ///
+    /// Measures how well a sequence is explained by a model or how unlikely
+    /// its transitions are under an estimated pattern distribution. It is
+    /// always relative to that model; it does **not** establish actual
+    /// out-of-sample forecasting performance.
+    ///
+    /// Examples: `MovingExplainedVariance`, `MovingOrdinalSurprise`.
     Predictability,
-    /// Spectral location or frequency content.
+
+    /// **Frequency:** Location of energy in the temporal frequency spectrum.
+    ///
+    /// Describes characteristic oscillation rates, as distinct from
+    /// spectral *diversity* (`Complexity`) or change between two spectra
+    /// (`RegimeChange`). No periodicity is guaranteed.
+    ///
+    /// Example: `MovingSpectralCentroid`.
     Frequency,
-    /// Difference between successive portions of a window.
+
+    /// **Regime change:** Difference in behavior between portions of time.
+    ///
+    /// Compares older and newer windows or model parameters to measure
+    /// structural change. The output need not indicate the direction of
+    /// a price movement, nor prove a persistent change of regime.
+    ///
+    /// Examples: `MovingAutoregressionChange`,
+    /// `MovingSpectralChange`, `MovingOptimalTransport`.
     RegimeChange,
-    /// Shape of the time-value curve.
+
+    /// **Geometry:** Shape of the graph in the time-value plane.
+    ///
+    /// Measures spatial features of the trajectory, such as its convex
+    /// hull, rather than only its value distribution or frequency content.
+    /// Specific geometry descriptors may overlap with trend or complexity.
+    ///
+    /// Example: `MovingConvexHullDeficit`.
     Geometry,
-    /// Repetition and recurrence structure.
+
+    /// **Recurrence:** Reappearance of similar states or trajectories.
+    ///
+    /// Describes repeated configurations in an embedded state space,
+    /// including their tendency to form deterministic-looking sequences.
+    /// This is distinct from simple autocorrelation (`Dependence`).
+    ///
+    /// Example: `MovingRecurrenceDeterminism`.
     Recurrence,
-    /// Time-direction asymmetry.
+
+    /// **Asymmetry:** Difference between forward and backward time ordering.
+    ///
+    /// Measures properties that change under reversal of the observation
+    /// sequence. This is not synonymous with positive/negative trend or
+    /// statistical skewness of the raw value distribution.
+    ///
+    /// Example: `MovingTimeReversalAsymmetry`.
     Asymmetry,
-    /// Encoding, sorting, accumulation or other data operations.
+
+    /// **Processing:** Representation or accumulation, not a measured feature.
+    ///
+    /// Covers transformations such as encoding, sorting, sign mapping or
+    /// integration whose primary role is to reshape or aggregate input
+    /// data. These should usually be treated as pipeline operations rather
+    /// than competing indicator families during feature selection.
+    ///
+    /// Examples: `OneHotQuantization`, `Order`, `Integrate`, `Signum`.
     Processing,
 }
 
