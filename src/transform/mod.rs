@@ -391,7 +391,6 @@ classify_sequence_transforms!(
     MovingIsotonicResidual => Trend,
     MovingMatrixEffectiveRank => Complexity,
     OneHotQuantization => Processing,
-    Order => Processing,
     RelativeStrength => Momentum,
     RelativeStrengthWeigth => Momentum,
     RelativeStrengthWeigthSum => Momentum,
@@ -403,3 +402,11 @@ classify_sequence_transforms!(
     MovingDirection => Trend,
     MovingMaxCrossingLevel => Level
 );
+
+// Order<T> has an explicit Number<T> bound on the type itself.
+impl<T: Number<T>> SequenceClassification for Order<T> {
+    const SEQUENCE_TYPE: SequenceType = SequenceType::Processing;
+}
+impl<T: Number<T>> Order<T> {
+    pub const SEQUENCE_TYPE: SequenceType = SequenceType::Processing;
+}
