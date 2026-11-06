@@ -15,6 +15,7 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MinusDistance](minusdistance.md)
 - [MinusDistanceSum](minusdistancesum.md)
 - [MovingAverage](movingaverage.md)
+- [MovingAreaMedian](movingareamedian.md)
 - [MovingAverageAverage](movingaverageaverage.md)
 - [MovingMedian](movingmedian.md)
 - [MovingMedian2](movingmedian2.md)
