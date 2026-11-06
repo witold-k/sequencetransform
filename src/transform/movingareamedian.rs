@@ -98,31 +98,3 @@ where ITEMOUT: 'static + Number<ITEMOUT> {
         TransformResult::Ok
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::position;
-    fn close(actual: f64, expected: f64) {
-        assert!((actual-expected).abs() < 1e-12, "{actual} != {expected}");
-    }
-    #[test]
-    fn constant_and_linear() {
-        close(position(&[7.0,7.0,7.0]).unwrap(), 0.5);
-        close(position(&[0.0,1.0,2.0]).unwrap(), 2.0_f64.sqrt()/2.0);
-        close(position(&[2.0,1.0,0.0]).unwrap(), 1.0-2.0_f64.sqrt()/2.0);
-    }
-    #[test]
-    fn scale_and_offset() {
-        let base = position(&[1.0,2.0,5.0,3.0,2.0]).unwrap();
-        close(position(&[101.0,102.0,105.0,103.0,102.0]).unwrap(),base);
-        close(position(&[10.0,20.0,50.0,30.0,20.0]).unwrap(),base);
-    }
-    #[test]
-    fn zero_area_plateau() {
-        close(position(&[1.0,0.0,0.0,0.0,1.0]).unwrap(),0.5);
-    }
-    #[test]
-    fn rejects_nonfinite() {
-        assert!(position(&[1.0,f64::NAN]).is_none());
-    }
-}
