@@ -293,3 +293,113 @@ where
 
 pub mod movingindicators;
 pub use movingindicators::{MovingWeightedMedianPosition, MovingSquaredWeightedMedianPosition, MovingPositiveStrength, MovingDirection, MovingMaxCrossingLevel};
+
+
+/// Primary kind of information represented by a sequence transformation.
+///
+/// This is a coarse, mutually exclusive grouping intended for feature selection.
+/// It does not assert predictive power or statistical independence; some
+/// transformations also contain information belonging to other categories.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum SequenceType {
+    /// Direction or slope of the sequence.
+    Trend,
+    /// Relative upward/downward movement and directional impulses.
+    Momentum,
+    /// Magnitude or dispersion of fluctuations.
+    Volatility,
+    /// Central tendency, rank-based level or reference level.
+    Level,
+    /// Position of an event or mass within the observation window.
+    TemporalPosition,
+    /// Narrowing or widening of geometric boundaries.
+    Convergence,
+    /// Irregularity, entropy or effective dimensionality.
+    Complexity,
+    /// Temporal or autoregressive dependence.
+    Dependence,
+    /// How well a simple model or transition pattern explains the sequence.
+    Predictability,
+    /// Spectral location or frequency content.
+    Frequency,
+    /// Difference between successive portions of a window.
+    RegimeChange,
+    /// Shape of the time-value curve.
+    Geometry,
+    /// Repetition and recurrence structure.
+    Recurrence,
+    /// Time-direction asymmetry.
+    Asymmetry,
+    /// Encoding, sorting, accumulation or other data operations.
+    Processing,
+}
+
+/// Type-level access to the primary sequence property.
+pub trait SequenceClassification {
+    const SEQUENCE_TYPE: SequenceType;
+}
+
+// Keep classification in one auditable table, rather than spreading it
+// across implementation modules. Each transform also exposes an inherent
+// `SEQUENCE_TYPE` constant for ergonomic access.
+macro_rules! classify_sequence_transforms {
+    ($($name:ident => $kind:ident),+ $(,)?) => {
+        $(
+            impl<T> SequenceClassification for $name<T> {
+                const SEQUENCE_TYPE: SequenceType = SequenceType::$kind;
+            }
+            impl<T> $name<T> {
+                pub const SEQUENCE_TYPE: SequenceType = SequenceType::$kind;
+            }
+        )+
+    };
+}
+classify_sequence_transforms!(
+    DeltaSignum => Momentum,
+    DeltaSignumSum => Momentum,
+    Differentiate => Momentum,
+    Heavyside => Momentum,
+    Integrate => Processing,
+    MinusDistance => TemporalPosition,
+    MinusDistanceSum => TemporalPosition,
+    MaxDirection => Trend,
+    MovingAverage => Level,
+    MovingAreaMedian => TemporalPosition,
+    MovingExtremaConvergence => Convergence,
+    MovingExtremaBisectorSlope => Trend,
+    MovingAverageAverage => Level,
+    MovingMedian => Level,
+    MovingMedianAverage => Level,
+    MovingMedian2 => Level,
+    MovingMedianAverage2 => Level,
+    MovingPitch => Trend,
+    MovingAutoregression => Dependence,
+    MovingAutoregressionChange => RegimeChange,
+    MovingExplainedVariance => Predictability,
+    MovingPermutationEntropy => Complexity,
+    MovingTimeReversalAsymmetry => Asymmetry,
+    MovingSpectralEntropy => Complexity,
+    MovingSpectralCentroid => Frequency,
+    MovingSpectralChange => RegimeChange,
+    MovingHiguchiDimension => Complexity,
+    MovingMultifractalCurvature => Complexity,
+    MovingRecurrenceDeterminism => Recurrence,
+    MovingOrdinalSurprise => Predictability,
+    MovingLempelZivComplexity => Complexity,
+    MovingOptimalTransport => RegimeChange,
+    MovingConvexHullDeficit => Geometry,
+    MovingIsotonicResidual => Trend,
+    MovingMatrixEffectiveRank => Complexity,
+    OneHotQuantization => Processing,
+    Order => Processing,
+    RelativeStrength => Momentum,
+    RelativeStrengthWeigth => Momentum,
+    RelativeStrengthWeigthSum => Momentum,
+    Signum => Processing,
+    SignumSum => Momentum,
+    MovingWeightedMedianPosition => TemporalPosition,
+    MovingSquaredWeightedMedianPosition => TemporalPosition,
+    MovingPositiveStrength => Momentum,
+    MovingDirection => Trend,
+    MovingMaxCrossingLevel => Level
+);
