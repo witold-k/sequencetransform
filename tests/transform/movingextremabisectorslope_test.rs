@@ -24,9 +24,9 @@ fn symmetric_lines_have_horizontal_bisector() {
 #[test]
 fn asymmetric_lines_bisect_angles_not_slopes() {
     // Top pair: (0,10), (2,9); bottom pair: (1,0), (3,2).
-    // Normalized slopes: -0.15 and +0.6.
+    // Normalized slopes: -0.15 and +0.3.
     let (_, output) = run(&[10.0, 0.0, 9.0, 2.0], 4);
-    let expected = ((-0.15_f64).atan() + (0.6_f64).atan()).mul_add(0.5, 0.0).tan();
+    let expected = ((-0.15_f64).atan() + (0.3_f64).atan()).mul_add(0.5, 0.0).tan();
     close(output[3], expected);
     assert!(output[3] > 0.0);
 }
