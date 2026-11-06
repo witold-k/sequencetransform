@@ -17,6 +17,7 @@ Each public transform has its own documentation page explaining the algorithm, i
 - [MovingAverage](movingaverage.md)
 - [MovingAreaMedian](movingareamedian.md)
 - [MovingExtremaConvergence](movingextremaconvergence.md)
+- [MovingExtremaBisectorSlope](movingextremabisectorslope.md)
 - [MovingAverageAverage](movingaverageaverage.md)
 - [MovingMedian](movingmedian.md)
 - [MovingMedian2](movingmedian2.md)
