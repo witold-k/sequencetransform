@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="movingextremaconvergence effect schematic" viewBox="0 0 600 240">
+<title>movingextremaconvergence effect schematic</title>
+<rect width="600" height="240" fill="white"/>
+<text x="24" y="27" font-size="17" fill="#222">MovingExtremaConvergence — effect (schematic)</text>
+<path d="M40 195 H570 M40 195 V48" stroke="#555" stroke-width="2" fill="none"/>
+<path d="M65 67 L145 174 L225 82 L305 163 L385 95 L465 147 L545 108" stroke="#2675b8" stroke-width="3" fill="none"/>
+<path d="M65 67 L225 82 L555 113" stroke="#b67a20" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+<path d="M145 174 L305 163 L555 146" stroke="#b67a20" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+<circle cx="65" cy="67" r="5" fill="#2675b8"/><circle cx="225" cy="82" r="5" fill="#2675b8"/>
+<circle cx="145" cy="174" r="5" fill="#2675b8"/><circle cx="305" cy="163" r="5" fill="#2675b8"/>
+<text x="50" y="218" font-size="13" fill="#444">Past</text><text x="515" y="218" font-size="13" fill="#444">Current</text>
+<text x="325" y="42" font-size="12" fill="#b67a20">Upper / lower lines</text>
+</svg>

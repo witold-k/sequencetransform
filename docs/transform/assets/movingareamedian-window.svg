@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="movingareamedian window schematic" viewBox="0 0 600 240">
+<title>movingareamedian window schematic</title>
+<rect width="600" height="240" fill="#fff"/>
+<text x="24" y="28" font-size="18" fill="#222">MovingAreaMedian — window (schematic)</text>
+<path d="M45 185 H560 M45 185 V50" fill="none" stroke="#555" stroke-width="2"/>
+<path d="M45 150 L110 130 L175 142 L240 108 L305 86 L370 96 L435 58 L500 74 L555 42" fill="none" stroke="#2877b9" stroke-width="3"/>
+<rect x="240" y="36" width="315" height="149" fill="#f4a340" fill-opacity=".13"/><path d="M240 185 V108 M555 185 V42" stroke="#d18421" stroke-dasharray="5 4" stroke-width="2"/>
+<text x="50" y="216" font-size="14" fill="#555">Past</text><text x="500" y="216" font-size="14" fill="#555">Current</text>
+<text x="365" y="32" font-size="12" fill="#2877b9">Input</text>
+<text x="420" y="32" font-size="12" fill="#b7751a">Trailing window</text>
+</svg>
